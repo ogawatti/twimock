@@ -1,3 +1,9 @@
+[![Gem Version](https://badge.fury.io/rb/twimock.svg)](http://badge.fury.io/rb/twimock)
+[![Build Status](https://travis-ci.org/ogawatti/twimock.svg?branch=master)](https://travis-ci.org/ogawatti/twimock)
+[![Coverage Status](https://coveralls.io/repos/ogawatti/twimock/badge.png?branch=master)](https://coveralls.io/r/ogawatti/twimock?branch=master)
+[<img src="https://gemnasium.com/ogawatti/twimock.png" />](https://gemnasium.com/ogawatti/twimock)
+[![Code Climate](https://codeclimate.com/github/ogawatti/twimock.png)](https://codeclimate.com/github/ogawatti/twimock)
+
 # Twimock
 
 TODO: Write a gem description
