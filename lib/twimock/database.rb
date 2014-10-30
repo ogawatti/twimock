@@ -82,10 +82,10 @@ module Twimock
       @connection.execute <<-SQL
         CREATE TABLE applications (
           id          INTEGER   PRIMARY KEY AUTOINCREMENT,
-          key         TEXT      NOT NULL,
-          secret      TEXT      NOT NULL,
+          api_key         TEXT      NOT NULL,
+          api_secret      TEXT      NOT NULL,
           created_at  DATETIME  NOT NULL,
-          UNIQUE(secret)
+          UNIQUE(api_secret)
         );
       SQL
     end 
