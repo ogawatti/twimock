@@ -48,7 +48,7 @@ describe Twimock::User do
       describe '.id' do
         subject { Twimock::User.new.id }
         it { is_expected.to be > 0 }
-        it { is_expected.to be < 100010000000000 }
+        it { is_expected.to be < 10000000000 }
       end
 
       describe '.name' do
@@ -75,9 +75,25 @@ describe Twimock::User do
         subject { Twimock::User.new.access_token }
         it { is_expected.to be_kind_of String }
 
+        describe '.include?(id)' do
+          before { @user = Twimock::User.new }
+          subject { @user.access_token }
+          it { is_expected.to include @user.id.to_s }
+        end
+
         describe '.size' do
           subject { Twimock::User.new.access_token.size }
-          it { is_expected.to eq 255 }
+          it { is_expected.to eq 50 }
+        end
+      end
+
+      describe '.access_token_secret' do
+        subject { Twimock::User.new.access_token_secret }
+        it { is_expected.to be_kind_of String }
+
+        describe '.size' do
+          subject { Twimock::User.new.access_token_secret.size }
+          it { is_expected.to eq 45 }
         end
       end
 
@@ -100,13 +116,12 @@ describe Twimock::User do
       describe '.id' do
         subject { Twimock::User.new(@opts).id }
         it { is_expected.to be > 0 }
-        it { is_expected.to be < 100010000000000 }
+        it { is_expected.to be < 10000000000 }
       end
     end
 
-    # TODO : DOING
     context 'with identifier option' do
-      before { @opts = { identifier: 100010000000000 } }
+      before { @opts = { identifier: 1000000000 } }
       subject { Twimock::User.new(@opts) }
       it { is_expected.to be_kind_of Twimock::User }
 
@@ -118,6 +133,11 @@ describe Twimock::User do
       describe '.identifier' do
         subject { Twimock::User.new(@opts).identifier }
         it { is_expected.to eq @opts[:identifier] }
+      end
+
+      describe '.access_token' do
+        subject { Twimock::User.new(@opts).access_token }
+        it { is_expected.to include @opts[:identifier].to_s }
       end
     end
 
