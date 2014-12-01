@@ -33,10 +33,12 @@ module Twimock
         users      = data.users
 
         # Validate data format
-        raise Twimock::Errors::IncorrectDataFormat.new "app id is empty" unless validate_id(app_id)
-        raise Twimock::Errors::IncorrectDataFormat.new "api key is empty" unless validate_key(api_key)
-        raise Twimock::Errors::IncorrectDataFormat.new "api secret is empty" unless validate_secret(api_secret)
-        raise Twimock::Errors::IncorrectDataFormat.new "users format is incorrect" unless validate_users(users)
+        [:app_id, :api_key, :api_secret, :users].each { |key| validate_format(key, data.send(key)) }
+        users.each do |user|
+          [:identifier, :access_token, :access_token_secret, :display_name, :password, :username].each do |key|
+            validate_format(key, user.send(key))
+          end
+        end
 
         # Create application and user record
         app = Twimock::Application.create!({ id: app_id, api_key: api_key, api_secret: api_secret })
@@ -52,48 +54,12 @@ module Twimock
 
     private
 
-    def validate_id(id)
-      case id
-      when String then !id.empty?
-      when Integer then id >= 0
+    def validate_format(key, value)
+      raise Twimock::Errors::IncorrectDataFormat.new "format of #{key} is incorrect" unless case value
+      when String, Array then !value.empty?
+      when Integer then value >= 0
       else false
       end
-    end
-
-    def validate_key(api_key)
-      case api_key
-      when String then !api_key.empty?
-      else false
-      end
-    end
-
-    def validate_secret(api_secret)
-      case api_secret
-      when String then !api_secret.empty?
-      else false
-      end
-    end
-
-    def validate_users(users)
-      case users
-      when Array
-        return false if users.empty?
-        users.each {|user| return false unless validate_user(Hashie::Mash.new(user)) }
-        true
-      else false
-      end
-    end
-
-    def validate_user(user)
-      return false unless validate_id(user.identifier)
-      [:access_token, :access_token_secret, :display_name, :password, :username].each do |key|
-        value = user.send(key)
-        case value
-        when String then return false if value.empty?
-        else return false
-        end
-      end
-      true
     end
   end
 end
