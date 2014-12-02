@@ -54,12 +54,29 @@ module Twimock
 
     private
 
-    def validate_format(key, value)
-      raise Twimock::Errors::IncorrectDataFormat.new "format of #{key} is incorrect" unless case value
-      when String, Array then !value.empty?
-      when Integer then value >= 0
-      else false
+    AVAILABLE_TYPE = { app_id: [String, Integer],
+                       api_key: [String],
+                       api_secret: [String],
+                       users: [Array],
+                       identifier: [String, Integer],
+                       access_token: [String],
+                       access_token_secret: [String],
+                       display_name: [String],
+                       password: [String],
+                       username: [String] }
+
+    def available?(key, value)
+      return false unless AVAILABLE_TYPE[key].any? { |t| value.kind_of?(t) }
+      case value
+      when String, Array
+         value.present?
+      when Integer
+         value >= 0
       end
+    end
+
+    def validate_format(key, value)
+      raise Twimock::Errors::IncorrectDataFormat.new "format of #{key} is incorrect" unless available?(key, value)
     end
   end
 end
