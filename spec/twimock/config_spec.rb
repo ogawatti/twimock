@@ -63,14 +63,14 @@ describe Twimock::Config do
           let(:yaml_load_data) { "" }
         end
 
-        [:app_id, :api_key, :api_secret, :users].each do |key|
+        [:id, :api_key, :api_secret, :users].each do |key|
           context "when #{key} is not exist", assert: :incorrect_data_format do
             before { app.delete(key) }
             let(:yaml_load_data) { [app] }
           end
         end
 
-        [:identifier, :display_name, :username, :password, :access_token, :access_token_secret].each do |key|
+        [:id, :name, :password, :access_token, :access_token_secret, :application_id].each do |key|
           context "when users #{key} is not exist", assert: :incorrect_data_format do
             before { app[:users].first.delete(key) }
             let(:yaml_load_data) { [app] }
@@ -79,8 +79,8 @@ describe Twimock::Config do
       end
 
       context 'yaml is correct format' do
-        let(:users) { [create_user, create_user({ identifier: 100000000000001 })] }
-        let(:app2) { create_app(users, { app_id: 000000000000001 }) }
+        let(:users) { [create_user, create_user({ id: 100000000000001 })] }
+        let(:app2) { create_app(users, { id: 000000000000001 }) }
         let(:yaml_load_data) { [app, app2] }
         let(:app_count) { yaml_load_data.size }
         let(:user_count) { yaml_load_data.inject(0){ |count, data| count += data[:users].size } }
@@ -104,21 +104,23 @@ end
 
 def create_user(params = {})
   id = Faker::Number.number(15)
-  user = { identifier: id,
-           display_name: "test user",
-           username: "testuser",
+  app_id = Faker::Number.number(15)
+  user = { id: id,
+           name: "testuser",
            password: 'testpass',
            access_token: "test_token_#{id}",
-           access_token_secret: "test_token_secret_#{id}" }
+           access_token_secret: "test_token_secret_#{id}",
+           application_id: app_id }
   user.merge! params
 end
 
 def create_app(users, params = {})
   id = Faker::Number.number(15)
-  app = { app_id: id,
+  app = { id: id,
           api_key: "test_api_key_#{id}",
           api_secret: "test_api_secret_#{id}",
           users: users }
+  app[:users].each { |u| u[:application_id] = id }
   app.merge! params
 end
 

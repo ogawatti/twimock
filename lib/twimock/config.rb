@@ -33,9 +33,9 @@ module Twimock
         users      = data.users
 
         # Validate data format
-        [:app_id, :api_key, :api_secret, :users].each { |key| validate_format(key, data.send(key)) }
+        [:id, :api_key, :api_secret, :users].each { |key| validate_format(key, data.send(key)) }
         users.each do |user|
-          [:identifier, :access_token, :access_token_secret, :display_name, :password, :username].each do |key|
+          [:id, :name, :password, :access_token, :access_token_secret, :application_id].each do |key|
             validate_format(key, user.send(key))
           end
         end
@@ -54,16 +54,15 @@ module Twimock
 
     private
 
-    AVAILABLE_TYPE = { app_id: [String, Integer],
+    AVAILABLE_TYPE = { id: [String, Integer],
                        api_key: [String],
                        api_secret: [String],
                        users: [Array],
-                       identifier: [String, Integer],
+                       name: [String],
+                       password: [String],
                        access_token: [String],
                        access_token_secret: [String],
-                       display_name: [String],
-                       password: [String],
-                       username: [String] }
+                       application_id: [String, Integer] }
 
     def available?(key, value)
       return false unless AVAILABLE_TYPE[key].any? { |t| value.kind_of?(t) }
