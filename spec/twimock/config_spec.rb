@@ -4,84 +4,35 @@ require 'faker'
 
 describe Twimock::Config do
   let(:db_name) { ".test" }
-  let(:ymlfile) { "testdata.yml" }
-
+  let(:database) { Twimock::Database.new }
   before { stub_const("Twimock::Database::DEFAULT_DB_NAME", db_name) }
+  after { database.drop }
 
-  describe '#default_database' do
-    before do
-      allow_any_instance_of(Twimock::Database).to receive(:connect) { true }
-      allow_any_instance_of(Twimock::Database).to receive(:create_tables) { true }
-      allow_any_instance_of(Twimock::Database).to receive(:disconnect!) { true }
-    end
+  ['default_database', 'database']. each do |db|
+    describe "##{db}" do
+      before do
+        [:connect, :create_tables, :disconnect!].each do |method|
+          allow_any_instance_of(Twimock::Database).to receive(method) { true }
+        end
+      end
 
-    subject { Twimock::Config.default_database }
-    it { is_expected.to be_truthy }
+      subject { Twimock::Config.send(db) }
+      it { is_expected.to be_truthy }
 
-    describe '.name' do
-      subject { Twimock::Config.default_database.name }
-      it { is_expected.not_to be_nil }
-      it { is_expected.not_to be_empty }
-    end
-  end
-
-  describe '#database' do
-    before do
-      allow_any_instance_of(Twimock::Database).to receive(:connect) { true }
-      allow_any_instance_of(Twimock::Database).to receive(:create_tables) { true }
-      allow_any_instance_of(Twimock::Database).to receive(:disconnect!) { true }
-    end
-
-    subject { Twimock::Config.database }
-    it { is_expected.to be_truthy }
-
-    describe '.name' do
-      subject { Twimock::Config.database.name }
-      it { is_expected.not_to be_nil }
-      it { is_expected.not_to be_empty }
+      describe '.name' do
+        subject { Twimock::Config.send(db).name }
+        it { is_expected.not_to be_nil }
+        it { is_expected.not_to be_empty }
+      end
     end
   end
 
   describe '#reset_database' do
-    context 'when does not set database' do
-      subject { Twimock::Config.reset_database }
-      it { is_expected.to be_nil }
-    end
-
-    context 'when already set database' do
-      before do
-        stub_const("Twimock::Database::DEFAULT_DATABASE_NAME", db_name)
-        @database = Twimock::Database.new
-      end
-
-      subject { Twimock::Config.reset_database }
-      it { is_expected.to be_nil }
-
-      after { @database.drop }
-    end
+    subject { Twimock::Config.reset_database }
+    it { is_expected.to be_nil }
   end
 
   describe '#load_users' do
-    def create_user(opts = {})
-      id = Faker::Number.number(15)
-      user = { identifier: id,
-               display_name: "test user",
-               username: "testuser",
-               password: 'testpass',
-               access_token: "test_token_#{id}",
-               access_token_secret: "test_token_secret_#{id}" }
-      user.merge! opts
-    end
-
-    def create_app(users, opts = {})
-      id = Faker::Number.number(15)
-      app = { app_id: id,
-              api_key: "test_api_key_#{id}",
-              api_secret: "test_api_secret_#{id}",
-              users: users }
-      app.merge! opts
-    end
-
     let(:user) { create_user }
     let(:app) { create_app([user]) }
     let(:path) { create_temporary_yaml_file(yaml_load_data) }
@@ -92,26 +43,14 @@ describe Twimock::Config do
     end
 
     context 'with yaml file path' do
-      before do
-        stub_const("Twimock::Database::DEFAULT_DB_NAME", db_name)
-        @database = Twimock::Database.new
-      end
-      after { @database.drop }
+      subject { lambda { Twimock::Config.load_users(path) } }
 
       context 'but file does not exist' do
-        subject { lambda { Twimock::Config.load_users("testdata.yml") } }
+        let(:path) { 'testdata.yml' }
         it { is_expected.to raise_error Errno::ENOENT }
       end
 
-      def create_temporary_yaml_file(data)
-        path = Tempfile.open(ymlfile) do |tempfile|
-          tempfile.puts YAML.dump(data)
-          tempfile.path
-        end
-      end
-
       shared_context 'app and user should not be created', assert: :incorrect_data_format do
-        subject { lambda { Twimock::Config.load_users(path) } }
         it 'app and user should not be created' do
           is_expected.to raise_error Twimock::Errors::IncorrectDataFormat
           expect(Twimock::Application.all).to be_empty
@@ -160,5 +99,33 @@ describe Twimock::Config do
         it { expect{ Twimock::Config.load_users(path) }.to change{ Twimock::User.all.count }.by(1) }
       end
     end
+  end
+end
+
+def create_user(params = {})
+  id = Faker::Number.number(15)
+  user = { identifier: id,
+           display_name: "test user",
+           username: "testuser",
+           password: 'testpass',
+           access_token: "test_token_#{id}",
+           access_token_secret: "test_token_secret_#{id}" }
+  user.merge! params
+end
+
+def create_app(users, params = {})
+  id = Faker::Number.number(15)
+  app = { app_id: id,
+          api_key: "test_api_key_#{id}",
+          api_secret: "test_api_secret_#{id}",
+          users: users }
+  app.merge! params
+end
+
+def create_temporary_yaml_file(data)
+  ymlfile = 'testdata.yml'
+  path = Tempfile.open(ymlfile) do |tempfile|
+    tempfile.puts YAML.dump(data)
+    tempfile.path
   end
 end
