@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'tempfile'
+require 'faker'
 
 describe Twimock::Config do
   let(:db_name) { ".test" }
@@ -61,29 +62,29 @@ describe Twimock::Config do
   end
 
   describe '#load_users' do
-    def create_user(name, opts = {})
-      user = { identifier: "100000000000001",
-               display_name: "test #{name}",
-               username: "test#{name}",
+    def create_user(opts = {})
+      id = Faker::Number.number(15)
+      user = { identifier: id,
+               display_name: "test user",
+               username: "testuser",
                password: 'testpass',
-               access_token: "test_token_#{name}",
-               access_token_secret: "test_token_secret_#{name}" }
+               access_token: "test_token_#{id}",
+               access_token_secret: "test_token_secret_#{id}" }
       user.merge! opts
     end
 
-    def create_app(name, users, opts = {})
-      app = { app_id: "000000000000001",
-              api_key: "test_api_key_#{name}",
-              api_secret: "test_api_secret_#{name}",
+    def create_app(users, opts = {})
+      id = Faker::Number.number(15)
+      app = { app_id: id,
+              api_key: "test_api_key_#{id}",
+              api_secret: "test_api_secret_#{id}",
               users: users }
       app.merge! opts
     end
 
-    let(:app1_user1) { create_user("app1_user1") }
-    let(:app1_user2) { create_user("app1_user2", { identifier: "100000000000002" }) }
-    let(:app1) { create_app("app1", [app1_user1, app1_user2]) }
-    let(:app2_user1) { create_user("app2_user1", { identifier: 100000000000003 }) }
-    let(:app2) { create_app("app2", [app2_user1], { app_id: 000000000000002 }) }
+    let(:user) { create_user }
+    let(:app) { create_app([user]) }
+    let(:path) { create_temporary_yaml_file(yaml_load_data) }
 
     context 'without argument' do
       subject { lambda { Twimock::Config.load_users } }
@@ -110,8 +111,6 @@ describe Twimock::Config do
       end
 
       shared_context 'app and user should not be created', assert: :incorrect_data_format do
-        let(:path) { create_temporary_yaml_file(users_data) }
-
         subject { lambda { Twimock::Config.load_users(path) } }
         it 'app and user should not be created' do
           is_expected.to raise_error Twimock::Errors::IncorrectDataFormat
@@ -122,46 +121,43 @@ describe Twimock::Config do
 
       context 'but incorrect format' do
         context 'when load data is not array', assert: :incorrect_data_format do
-          let(:users_data) { "" }
+          let(:yaml_load_data) { "" }
         end
 
         [:app_id, :api_key, :api_secret, :users].each do |key|
           context "when #{key} is not exist", assert: :incorrect_data_format do
-            before { app2.delete(key) }
-            let(:users_data) { [app2] }
+            before { app.delete(key) }
+            let(:yaml_load_data) { [app] }
           end
         end
 
         [:identifier, :display_name, :username, :password, :access_token, :access_token_secret].each do |key|
           context "when users #{key} is not exist", assert: :incorrect_data_format do
-            before { app2[:users].first.delete(key) }
-            let(:users_data) { [app2] }
+            before { app[:users].first.delete(key) }
+            let(:yaml_load_data) { [app] }
           end
         end
       end
 
       context 'yaml is correct format' do
-        let(:yaml_load_data) { [app1, app2] }
-        let(:path) { create_temporary_yaml_file(yaml_load_data) }
+        let(:users) { [create_user, create_user({ identifier: 100000000000001 })] }
+        let(:app2) { create_app(users, { app_id: 000000000000001 }) }
+        let(:yaml_load_data) { [app, app2] }
         let(:app_count) { yaml_load_data.size }
         let(:user_count) { yaml_load_data.inject(0){ |count, data| count += data[:users].size } }
 
-        subject { lambda { Twimock::Config.load_users(path) } }
-        it { is_expected.not_to raise_error }
-
         it 'app and user should be created' do
-          Twimock::Config.load_users(path)
+          expect{ Twimock::Config.load_users(path) }.not_to raise_error
           expect(Twimock::Application.all.count).to eq app_count
           expect(Twimock::User.all.count).to eq user_count
         end
+      end
 
-        context 'when already exist specified users' do
-          before { Twimock::Config.load_users(path) }
-          it 'should not raise error' do
-            new_path = create_temporary_yaml_file(yaml_load_data)
-            expect{ Twimock::Config.load_users(new_path) }.to change{ user_count }.by(0)
-          end
-        end
+      context 'same user should not be created' do
+        let(:app) { create_app([user, user]) }
+        let(:yaml_load_data) { [app] }
+
+        it { expect{ Twimock::Config.load_users(path) }.to change{ Twimock::User.all.count }.by(1) }
       end
     end
   end
