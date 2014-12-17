@@ -27,7 +27,7 @@ module Twimock
 
       load_data.each do |app_data|
         data = Hashie::Mash.new(app_data)
-        app_id     = data.app_id
+        app_id     = data.id
         api_key    = data.api_key
         api_secret = data.api_secret
         users      = data.users

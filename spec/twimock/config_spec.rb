@@ -33,8 +33,8 @@ describe Twimock::Config do
   end
 
   describe '#load_users' do
-    let(:user) { create_user }
-    let(:app) { create_app([user]) }
+    let(:app) { app_data }
+    let(:yaml_load_data) { [app] }
     let(:path) { create_temporary_yaml_file(yaml_load_data) }
 
     context 'without argument' do
@@ -66,22 +66,18 @@ describe Twimock::Config do
         [:id, :api_key, :api_secret, :users].each do |key|
           context "when #{key} is not exist", assert: :incorrect_data_format do
             before { app.delete(key) }
-            let(:yaml_load_data) { [app] }
           end
         end
 
         [:id, :name, :password, :access_token, :access_token_secret, :application_id].each do |key|
           context "when users #{key} is not exist", assert: :incorrect_data_format do
             before { app[:users].first.delete(key) }
-            let(:yaml_load_data) { [app] }
           end
         end
       end
 
       context 'yaml is correct format' do
-        let(:users) { [create_user, create_user({ id: 100000000000001 })] }
-        let(:app2) { create_app(users, { id: 000000000000001 }) }
-        let(:yaml_load_data) { [app, app2] }
+        let(:yaml_load_data) { [app_data, app_data(2)] }
         let(:app_count) { yaml_load_data.size }
         let(:user_count) { yaml_load_data.inject(0){ |count, data| count += data[:users].size } }
 
@@ -92,36 +88,32 @@ describe Twimock::Config do
         end
       end
 
-      context 'same user should not be created' do
-        let(:app) { create_app([user, user]) }
-        let(:yaml_load_data) { [app] }
 
-        it { expect{ Twimock::Config.load_users(path) }.to change{ Twimock::User.all.count }.by(1) }
+      context 'same user should not be created' do
+        let(:new_path) { create_temporary_yaml_file(yaml_load_data) }
+        before { Twimock::Config.load_users(path) }
+        it { expect{ Twimock::Config.load_users(new_path) }.not_to change{ Twimock::User.all.count } }
       end
     end
   end
 end
 
-def create_user(params = {})
-  id = Faker::Number.number(15)
-  app_id = Faker::Number.number(15)
-  user = { id: id,
-           name: "testuser",
-           password: 'testpass',
-           access_token: "test_token_#{id}",
-           access_token_secret: "test_token_secret_#{id}",
-           application_id: app_id }
-  user.merge! params
-end
-
-def create_app(users, params = {})
-  id = Faker::Number.number(15)
-  app = { id: id,
-          api_key: "test_api_key_#{id}",
-          api_secret: "test_api_secret_#{id}",
+def app_data(user_count = 1)
+  app_id = Faker::Number.number(15).to_i
+  users = []
+  user_count.times do
+    user = { id: Faker::Number.number(15),
+             name: 'test_user',
+             password: 'test_pass',
+             access_token: 'test_token',
+             access_token_secret: "test_token_secret_#{Faker::Number.number(15)}",
+             application_id: app_id }
+    users.push user
+  end
+  app = { id: app_id,
+          api_key: 'test_api_key',
+          api_secret: "test_api_secret_#{app_id}",
           users: users }
-  app[:users].each { |u| u[:application_id] = id }
-  app.merge! params
 end
 
 def create_temporary_yaml_file(data)
