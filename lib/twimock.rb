@@ -1,3 +1,4 @@
+require 'net/http'
 require "active_support/time"
 require "twimock/version"
 require "twimock/database"
@@ -5,11 +6,37 @@ require "twimock/config"
 require "twimock/application"
 require "twimock/user"
 require "twimock/auth_hash"
-require "twimock/omniauth"
+require "twimock/net/http"
 require "twimock/errors"
 
 module Twimock
   extend self
+  @@enable = false
+
+  def on?
+    @@enable
+  end
+
+  def on
+    unless Twimock.on?
+      ::Net::HTTP.class_eval do
+        alias_method :__get, :get; remove_method :get
+        include ::Twimock::Net::HTTP
+      end 
+      @@enable = true
+    end
+    true
+  end
+
+  def off
+    if Twimock.on?
+      ::Net::HTTP.class_eval do
+        alias_method :get, :__get; remove_method :__get
+      end
+      @@enable = false
+    end
+    true
+  end
 
 =begin
   def on
