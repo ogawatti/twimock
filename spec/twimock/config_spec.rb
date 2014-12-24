@@ -80,11 +80,19 @@ describe Twimock::Config do
         let(:yaml_load_data) { [app_data, app_data(2)] }
         let(:app_count) { yaml_load_data.size }
         let(:user_count) { yaml_load_data.inject(0){ |count, data| count += data[:users].size } }
+        let(:app) { yaml_load_data.first }
+        let(:user) { yaml_load_data.first[:users].first }
 
         it 'app and user should be created' do
           expect{ Twimock::Config.load_users(path) }.not_to raise_error
           expect(Twimock::Application.all.count).to eq app_count
           expect(Twimock::User.all.count).to eq user_count
+          [:api_key, :api_secret].each do |key|
+            expect(Twimock::Application.find_by_id(app[:id]).send(key).to_s).to eq app[key].to_s
+          end
+          [:name, :password, :access_token, :access_token_secret, :application_id].each do |key|
+            expect(Twimock::User.find_by_id(user[:id]).send(key).to_s).to eq user[key].to_s
+          end
         end
       end
 
