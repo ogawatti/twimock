@@ -10,7 +10,7 @@ describe Twimock do
   end
 
   describe '.auth_hash' do
-    context 'withou argument' do
+    context 'without argument' do
       subject { Twimock.auth_hash }
       it { is_expected.to be_kind_of Twimock::AuthHash }
       it { is_expected.to be_empty }
@@ -70,6 +70,52 @@ describe Twimock do
           expect(auth_hash.extra.raw_info.id).to eq @user.id
           expect(auth_hash.extra.raw_info.name).to eq @user.name
         end
+      end
+    end
+  end
+
+  describe Twimock::Api do
+    let(:api_host_name) { 'api.twitter.com' }
+    let(:http_app) { ShamRack.application_for(api_host_name) }
+    let(:https_app) { ShamRack.application_for(api_host_name, Net::HTTP.https_default_port) }
+
+    describe '.on' do
+      before { Twimock::Api.on }
+
+      it 'should have ShamRack applicatiosn' do
+        expect(http_app).not_to be_nil
+        expect(https_app).not_to be_nil
+      end
+
+      it 'should return 200 OK' do
+        [ Net::HTTP.default_port, Net::HTTP.https_default_port ].each do |port|
+          res = Net::HTTP.new(api_host_name, port).get('/')
+          expect(res.code).to eq '200'
+          expect(res.body).to eq 'Hello, world!'
+        end
+      end
+    end
+
+    describe '.off' do
+      before { Twimock::Api.off }
+
+      it 'should not have ShamRack application' do
+        expect(http_app).to be_nil
+        expect(https_app).to be_nil
+      end
+    end
+
+    describe '.on?' do
+      subject { Twimock::Api.on? }
+
+      context 'when Twimock on' do
+        before { Twimock::Api.on }
+        it { is_expected.to be_truthy }
+      end
+
+      context 'when Twimock off' do
+        before { Twimock::Api.off }
+        it { is_expected.to be_falsey }
       end
     end
   end
