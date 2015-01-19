@@ -10,7 +10,7 @@ describe Twimock do
   end
 
   describe '.auth_hash' do
-    context 'withou argument' do
+    context 'without argument' do
       subject { Twimock.auth_hash }
       it { is_expected.to be_kind_of Twimock::AuthHash }
       it { is_expected.to be_empty }

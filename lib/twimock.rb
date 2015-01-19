@@ -6,6 +6,7 @@ require "twimock/application"
 require "twimock/user"
 require "twimock/auth_hash"
 require "twimock/errors"
+require "twimock/api"
 
 module Twimock
   extend self
