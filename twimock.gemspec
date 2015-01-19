@@ -23,6 +23,9 @@ Gem::Specification.new do |spec|
   spec.add_dependency "activesupport"
   spec.add_dependency "hashie"
   spec.add_dependency "faker"
+  spec.add_dependency "sham_rack"
+  spec.add_dependency "excon"
+  spec.add_dependency "omniauth-twitter"
 
   spec.add_development_dependency "bundler", "~> 1.3"
   spec.add_development_dependency "rake"
