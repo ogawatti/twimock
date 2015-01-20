@@ -13,6 +13,7 @@ module Twimock
         if env["REQUEST_METHOD"] == METHOD && env["PATH_INFO"] == PATH
           # 認証
           # ユーザ情報発行
+          [ "200 OK", {}, [] ]
         else
           super
         end

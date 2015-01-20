@@ -6,7 +6,7 @@ module Twimock
       end
 
       def call(env)
-        @app.call
+        @app.call(env)
       end
     end
   end

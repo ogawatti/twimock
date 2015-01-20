@@ -12,6 +12,7 @@ module Twimock
         if env["REQUEST_METHOD"] == METHOD && env["PATH_INFO"] == PATH
           # 認証
           # Request Token発行
+          [ "201 Created", {}, [] ]
         else
           super
         end

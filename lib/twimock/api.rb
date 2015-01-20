@@ -2,36 +2,36 @@ require 'twimock/api/application'
 require 'twimock/api/oauth_access_token'
 require 'twimock/api/oauth_request_token'
 require 'twimock/api/account_credentials'
+require 'sham_rack'
 
 module Twimock
   module API
     extend self
 
-    HOSTNAME    = "api.twiter.com"
+    HOSTNAME    = "api.twitter.com"
     PORT        = 443
     MIDDLEWARES = [ OAuthAccessToken, OAuthRequestToken, AccountCredentials ]
 
     def on
-      ShamRack.at(HOST_NAME, PORT) do |env|
-        app
-      end
+      ShamRack.at(HOSTNAME, PORT){|env| app.call(env) } unless on?
+      true
     end
     
     def off
       ShamRack.unmount_all
+      true
     end
 
     def on?
-      !ShamRack.application_for(HOST_NAME, PORT).nil?
+      !ShamRack.application_for(HOSTNAME, PORT).nil?
     end
 
     # Rack Application
     def app
       app = Twimock::API::Application.new
-      MIDDLEWARES.inject(app) do |klass|
+      MIDDLEWARES.inject(app) do |app, klass|
         app = klass.new(app)
       end
-      app
     end
   end
 end
