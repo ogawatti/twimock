@@ -1,15 +1,25 @@
+require 'excon'
+
 module Twimock
   module API
     # Rack Application
     # Net::HTTP は ShamRack で偽装されるため, Excon (Socket) で通信する
     class Application
-      def app
-        request = Rack::Request.new(env)
-        options = {}
-        options[:proxy] = ENV['HTTP_PROXY'] if ENV['HTTP_PROXY']
+      def call(env)
+        request(env)
+      end
 
-        # T.B.D : Request Header, Body, Methodの指定が必要
-        res = Excon.get(request.url, options)
+      def request(env)
+        rackreq = Rack::Request.new(env)
+        connection = Excon.new(rackreq.url)
+
+        options = {}
+        options[:method]  = rackreq.request_method
+        options[:path]    = rackreq.path
+        options[:headers] = rackreq.env.select{|k,v| k !~ /^rack\./}
+        options[:body]    = rackreq.body.read
+
+        res = connection.request(options)
         [ res.status, res.headers, [ res.body ] ]
       end
     end
