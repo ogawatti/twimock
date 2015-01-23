@@ -9,6 +9,8 @@ module Twimock
         request(env)
       end
 
+      private
+
       def request(env)
         rackreq = Rack::Request.new(env)
         connection = Excon.new(rackreq.url)
