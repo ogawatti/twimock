@@ -83,7 +83,7 @@ describe Twimock::User do
 
         describe '.size' do
           subject { Twimock::User.new.access_token.size }
-          it { is_expected.to eq 50 }
+          it { is_expected.to be <= 50 }
         end
       end
 

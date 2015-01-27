@@ -28,12 +28,16 @@ describe Twimock::API::OAuthRequestToken do
     it 'should return 200 OK' do
       post '/oauth/request_token'
 
-      expect(last_response.status).to eq 200
+      status = last_response.status
+      header = last_response.header
+      body   = last_response.body
 
-      expect(last_response.header).not_to be_blank
-      expect(last_response.header['Content-Length']).to eq body.bytesize.to_s
+      expect(status).to eq 200
 
-      expect(last_response.body).not_to be_blank
+      expect(header).not_to be_blank
+      expect(header['Content-Length']).to eq body.bytesize.to_s
+
+      expect(body).not_to be_blank
       index = body =~ /^oauth_token=(.*)&oauth_token_secret=(.*)&oauth_callback_confirmed=(.*)$/
       expect(index).to eq 0
       expect($1).to eq oauth_token

@@ -1,5 +1,6 @@
 require 'faker'
 require 'twimock/database/table'
+require 'twimock/request_token'
 
 module Twimock
   class User < Database::Table
