@@ -5,6 +5,7 @@ module Twimock
   class User < Database::Table
     TABLE_NAME = :users
     COLUMN_NAMES = [:id, :name, :password, :access_token, :access_token_secret, :application_id, :created_at]
+    CHILDREN = [ RequestToken ]
 
     def initialize(options={})
       opts = Hashie::Mash.new(options)
