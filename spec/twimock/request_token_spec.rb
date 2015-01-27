@@ -3,20 +3,22 @@ require 'spec_helper'
 describe Twimock::RequestToken do
   include TableHelper
 
-  let(:db_name)      { ".test" }
-  let(:table_name)   { :request_tokens }
-  let(:column_names) { [ :id, :string, :secret, :user_id, :created_at ] }
+  let(:db_name)        { ".test" }
+  let(:table_name)     { :request_tokens }
+  let(:column_names)   { [ :id, :string, :secret, :application_id, :user_id, :created_at ] }
 
-  let(:id)           { 1 }
-  let(:string)       { "test_token" }
-  let(:secret)       { "test_token_secret" }
-  let(:user_id)      { 1 }
-  let(:created_at)   { Time.now }
-  let(:options)      { { id:         id, 
-                         string:     string,
-                         secret:     secret,
-                         user_id:    user_id,
-                         created_at: created_at } }
+  let(:id)             { 1 }
+  let(:string)         { "test_token" }
+  let(:secret)         { "test_token_secret" }
+  let(:application_id) { 1 }
+  let(:user_id)        { 1 }
+  let(:created_at)     { Time.now }
+  let(:options)        { { id:             id, 
+                           string:         string,
+                           secret:         secret,
+                           application_id: application_id,
+                           user_id:        user_id,
+                           created_at:     created_at } }
 
   after { remove_dynamically_defined_all_method }
 
@@ -65,6 +67,11 @@ describe Twimock::RequestToken do
         it { is_expected.to be_nil }
       end
 
+      describe '.application_id' do
+        subject { Twimock::RequestToken.new.application_id }
+        it { is_expected.to be_nil }
+      end
+
       describe '.created_at' do
         subject { Twimock::RequestToken.new.created_at }
         it { is_expected.to be_nil }
@@ -89,6 +96,17 @@ describe Twimock::RequestToken do
 
       describe '.user_id' do
         subject { Twimock::RequestToken.new(@opts).user_id }
+        it { is_expected.to be_nil }
+      end
+    end
+
+    context 'with application_id option but it is not integer' do
+      before { @opts = { application_id: "test_id" } }
+      subject { Twimock::RequestToken.new(@opts) }
+      it { is_expected.to be_kind_of Twimock::RequestToken }
+
+      describe '.application_id' do
+        subject { Twimock::RequestToken.new(@opts).application_id }
         it { is_expected.to be_nil }
       end
     end

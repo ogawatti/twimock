@@ -107,11 +107,12 @@ module Twimock
     def create_request_tokens_table
       @connection.execute <<-SQL
         CREATE TABLE request_tokens (
-          id          INTEGER   PRIMARY KEY AUTOINCREMENT,
-          string      TEXT      NOT NULL,
-          secret      TEXT      NOT NULL,
-          user_id     INTEGER,
-          created_at  DATETIME  NOT NULL,
+          id              INTEGER   PRIMARY KEY AUTOINCREMENT,
+          string          TEXT      NOT NULL,
+          secret          TEXT      NOT NULL,
+          application_id  INTEGER   NOT NULL,
+          user_id         INTEGER,
+          created_at      DATETIME  NOT NULL,
           UNIQUE(string, secret));
       SQL
     end

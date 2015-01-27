@@ -21,12 +21,23 @@ describe Twimock::API::OAuthRequestToken do
   end
 
   describe "POST '/oauth/request_token'" do
-    let (:oauth_token) { "rtbhw3pwBG1l498HYrDIRe8QSX09Bal1" }
-    let (:oauth_token_secret) { "EqKuyJU3XcS7mgwLUbUYnBZYcLSDavJq" }
-    let (:oauth_callback_confirmed) { "true" }
+    before do
+      stub_const("Twimock::Database::DEFAULT_DB_NAME", db_name)
+
+      @app = Twimock::Application.new
+      @app.save!
+    end
+    after { database.drop }
+
+    let(:db_name) { ".test" }
+    let(:database) { Twimock::Database.new }
+
+    let (:body) { "" }
+    let (:header)  { { "authorization" => authorization } }
+    let (:authorization) { ["OAuth oauth_callback=\"http%3A%2F%2Fhiddeste.local.jp%3A3456%2Fusers%2Fauth%2Ftwitter%2Fcallback\", oauth_consumer_key=\"#{@app.api_key}\", oauth_nonce=\"gop2czKq1IebHEvEIo2qE64Hwp5SRWxLgilYAKqrWE\", oauth_signature=\"FVn4chN1TbLPDDsLb%2FqG%2FU99biA%3D\", oauth_signature_method=\"HMAC-SHA1\", oauth_timestamp=\"1422273831\", oauth_version=\"1.0\""] }
 
     it 'should return 200 OK' do
-      post '/oauth/request_token'
+      post path, body, header
 
       status = last_response.status
       header = last_response.header
@@ -40,9 +51,14 @@ describe Twimock::API::OAuthRequestToken do
       expect(body).not_to be_blank
       index = body =~ /^oauth_token=(.*)&oauth_token_secret=(.*)&oauth_callback_confirmed=(.*)$/
       expect(index).to eq 0
-      expect($1).to eq oauth_token
-      expect($2).to eq oauth_token_secret
-      expect($3).to eq oauth_callback_confirmed
+      oauth_token = $1
+      oauth_secret = $2
+      oauth_callback_confirmed = $3
+
+      token = Twimock::RequestToken.find_by_string(oauth_token)
+      expect(token).not_to be_nil
+      expect(token.secret).to eq oauth_secret
+      expect(oauth_callback_confirmed).to eq true.to_s
     end
   end
 
