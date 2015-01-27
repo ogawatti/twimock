@@ -49,8 +49,6 @@ module Twimock
           return false unless @authorization.oauth_timestamp.to_i > 0
           return false unless @authorization.oauth_version == "1.0"
         rescue => e
-          require 'pry'
-          binding.pry
           return false
         end
         true
