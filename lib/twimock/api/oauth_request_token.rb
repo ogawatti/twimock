@@ -3,8 +3,8 @@ require 'twimock/application'
 
 module Twimock
   module API
-    # OAuth 1.1 で利用するAPI
-    # Request Token を取得する
+    # Twitter OAuth で利用するAPI
+    # Request Token を発行する
     class OAuthRequestToken < OAuth
       METHOD = "POST"
       PATH   = "/oauth/request_token"
