@@ -8,7 +8,7 @@ module Twimock
     class AccountVerifyCredentials < OAuth
       METHOD = "GET"
       PATH   = "/1.1/account/verify_credentials.json"
-      AUTHORIZATION_REGEXP = /OAuth oauth_consumer_key=\"(.*)\", oauth_nonce=\"(.*)\", oauth_signature=\"(.*)\", oauth_signature_method=\"(.*)\", oauth_timestamp=\"(.*)\", oauth_token=\"(.*)\".*/
+      AUTHORIZATION_REGEXP = /OAuth oauth_consumer_key=\"(.*)\", oauth_nonce=\"(.*)\", oauth_signature=\"(.*)\", oauth_signature_method=\"(.*)\", oauth_timestamp=\"(.*)\", oauth_token=\"(.*)\", oauth_version=\"(.*)\".*/
 
       def call(env)
         if env["REQUEST_METHOD"] == METHOD && env["PATH_INFO"] == PATH
@@ -40,7 +40,14 @@ module Twimock
       end
 
       def validate_authorization_header(authorization)
-        # TODO
+        return false unless authorization.oauth_consumer_key.size > 0
+        return false unless authorization.oauth_nonce.size > 0
+        return false unless authorization.oauth_signature.size > 0
+        return false unless authorization.oauth_signature_method == "HMAC-SHA1"
+        return false unless authorization.oauth_timestamp.to_i > 0
+        return false unless authorization.oauth_token.size > 0
+        return false unless authorization.oauth_version == "1.0"
+
         true
       end
 
@@ -53,6 +60,7 @@ module Twimock
         authorization.oauth_signature_method = $4
         authorization.oauth_timestamp        = $5
         authorization.oauth_token            = $6
+        authorization.oauth_version          = $7
         authorization
       end
     end
