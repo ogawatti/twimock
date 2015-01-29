@@ -21,12 +21,28 @@ describe Twimock::API::AccountVerifyCredentials do
   end
 
   describe "GET '/1.1/account/verify_credentials.json'" do
-    it 'should return 201 Created' do
-      get '/1.1/account/verify_credentials.json'
+    let(:db_name) { ".test" }
+    let(:database) { Twimock::Database.new }
+    let(:body) { "" }
+    let(:header) { { "authorization" => @authorization } }
+
+    before do 
+      stub_const("Twimock::Database::DEFAULT_DB_NAME", db_name)
+      app = Twimock::Application.new
+      app.save!
+      user = Twimock::User.new(application_id: app.id)
+      user.save!
+      @authorization = [ "OAuth oauth_consumer_key=\"#{app.api_key}\", oauth_nonce=\"Tc400qacfXAoixQ5Tk9yeFjdBBrDb7U3Sdgs7WA8cM\", oauth_signature=\"I7LRwjN%2FRvqp53kia2fGCg%2FrBHo%3D\", oauth_signature_method=\"HMAC-SHA1\", oauth_timestamp=\"1422273906\", oauth_token=\"#{user.access_token}\"" ]
+    end
+    after  { database.drop }
+
+    it 'should return 200 OK' do
+      get '/1.1/account/verify_credentials.json', body, header
 
       expect(last_response.status).to eq 200
-      expect(last_response.body).to be_blank
-      expect(last_response.header).to be_blank
+      expect(last_response.header).not_to be_blank
+      expect(last_response.header['Content-Length']).to eq last_response.body.bytesize.to_s
+      expect(last_response.body).not_to be_blank
     end
   end
 
