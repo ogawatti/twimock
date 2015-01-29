@@ -12,9 +12,17 @@ module Twimock
 
       def call(env)
         if env["REQUEST_METHOD"] == METHOD && env["PATH_INFO"] == PATH
-          return failure unless validate_authorization_header(env)
+          begin
+            auth_header = env["authorization"]
+            raise if auth_header.blank?
+            authorization = parse_authorization_header(auth_header.first)
+            raise unless validate_authorization_header(authorization)
+            raise unless application = Twimock::Application.find_by_api_key(authorization.oauth_consumer_key)
+          rescue
+            return unauthorized
+          end
 
-          request_token = create_request_token
+          request_token = create_request_token(application.id)
           status = "200 OK"
           params = { oauth_token:              request_token.string,
                      oauth_token_secret:       request_token.secret,
@@ -30,27 +38,18 @@ module Twimock
 
       private
 
-      def failure
+      def unauthorized
         [ "401 Unauthorized", {}, "" ]
       end
 
-      def validate_authorization_header(env)
-        begin
-          auth_header = env["authorization"]
-          return false if auth_header.blank?
-
-          @authorization = parse_authorization_header(auth_header.first)
-          return false unless @authorization.oauth_callback.size > 0
-          return false unless @authorization.oauth_consumer_key.size > 0
-          return false unless @authorization.oauth_nonce.size > 0
-          return false unless @authorization.oauth_signature.size > 0
-          return false unless @authorization.oauth_signature_method == "HMAC-SHA1"
-          return false unless validate_consumer_key
-          return false unless @authorization.oauth_timestamp.to_i > 0
-          return false unless @authorization.oauth_version == "1.0"
-        rescue => e
-          return false
-        end
+      def validate_authorization_header(authorization)
+        return false unless authorization.oauth_callback.size > 0
+        return false unless authorization.oauth_consumer_key.size > 0
+        return false unless authorization.oauth_nonce.size > 0
+        return false unless authorization.oauth_signature.size > 0
+        return false unless authorization.oauth_signature_method == "HMAC-SHA1"
+        return false unless authorization.oauth_timestamp.to_i > 0
+        return false unless authorization.oauth_version == "1.0"
         true
       end
 
@@ -67,15 +66,8 @@ module Twimock
         authorization
       end
 
-      def validate_consumer_key
-        return false unless api_key = @authorization.oauth_consumer_key
-        @application = Twimock::Application.find_by_api_key(api_key)
-        return false unless @application
-        true
-      end
-
-      def create_request_token
-        request_token = Twimock::RequestToken.new(application_id: @application.id)
+      def create_request_token(app_id)
+        request_token = Twimock::RequestToken.new(application_id: app_id)
         request_token.save!
         request_token
       end

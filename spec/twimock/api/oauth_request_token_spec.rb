@@ -47,14 +47,14 @@ describe Twimock::API::OAuthRequestToken do
       let(:db_name)  { ".test" }
       let(:database) { Twimock::Database.new }
 
+      let(:header) { { "authorization" => @authorization } }
+
       context 'that is correct' do
         before do
           app = Twimock::Application.new
           app.save!
           @authorization = ["OAuth oauth_callback=\"http%3A%2F%2Fhiddeste.local.jp%3A3456%2Fusers%2Fauth%2Ftwitter%2Fcallback\", oauth_consumer_key=\"#{app.api_key}\", oauth_nonce=\"gop2czKq1IebHEvEIo2qE64Hwp5SRWxLgilYAKqrWE\", oauth_signature=\"FVn4chN1TbLPDDsLb%2FqG%2FU99biA%3D\", oauth_signature_method=\"HMAC-SHA1\", oauth_timestamp=\"1422273831\", oauth_version=\"1.0\""]
         end
-
-        let(:header) { { "authorization" => @authorization } }
 
         it 'should return 200 OK' do
           post path, body, header
@@ -78,16 +78,14 @@ describe Twimock::API::OAuthRequestToken do
       end
 
       context 'that is incorrect format', assert: :UnauthorizedOAuthRequestToken do
-        let(:header) { { "authorization" => ["OAuth consumer_key=\"test_consumer_key\""] } }
+        before { @authorization = ["OAuth consumer_key=\"test_consumer_key\""] }
       end
 
       context 'but consumer_key is invalid', assert: :UnauthorizedOAuthRequestToken do
         before do
           app = Twimock::Application.new
-          authorization = ["OAuth oauth_callback=\"http%3A%2F%2Fhiddeste.local.jp%3A3456%2Fusers%2Fauth%2Ftwitter%2Fcallback\", oauth_consumer_key=\"#{app.api_key}\", oauth_nonce=\"gop2czKq1IebHEvEIo2qE64Hwp5SRWxLgilYAKqrWE\", oauth_signature=\"FVn4chN1TbLPDDsLb%2FqG%2FU99biA%3D\", oauth_signature_method=\"HMAC-SHA1\", oauth_timestamp=\"1422273831\", oauth_version=\"1.0\""]
+          @authorization = ["OAuth oauth_callback=\"http%3A%2F%2Fhiddeste.local.jp%3A3456%2Fusers%2Fauth%2Ftwitter%2Fcallback\", oauth_consumer_key=\"#{app.api_key}\", oauth_nonce=\"gop2czKq1IebHEvEIo2qE64Hwp5SRWxLgilYAKqrWE\", oauth_signature=\"FVn4chN1TbLPDDsLb%2FqG%2FU99biA%3D\", oauth_signature_method=\"HMAC-SHA1\", oauth_timestamp=\"1422273831\", oauth_version=\"1.0\""]
         end
-
-        let(:header) { { "authorization" => @authorization } }
       end
     end
 
