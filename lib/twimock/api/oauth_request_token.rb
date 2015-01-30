@@ -38,10 +38,6 @@ module Twimock
 
       private
 
-      def unauthorized
-        [ "401 Unauthorized", {}, "" ]
-      end
-
       def validate_authorization_header(authorization)
         return false unless authorization.oauth_callback.size > 0
         return false unless authorization.oauth_consumer_key.size > 0

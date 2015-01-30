@@ -5,7 +5,7 @@ require 'twimock/request_token'
 module Twimock
   class User < Database::Table
     TABLE_NAME = :users
-    COLUMN_NAMES = [:id, :name, :password, :access_token, :access_token_secret, :application_id, :created_at]
+    COLUMN_NAMES = [:id, :name, :twitter_id, :password, :access_token, :access_token_secret, :application_id, :created_at]
     CHILDREN = [ RequestToken ]
 
     def initialize(options={})
@@ -13,6 +13,7 @@ module Twimock
       id = opts.id || opts.identifier
       @id                  = (id.to_i > 0) ? id.to_i : (Faker::Number.number(10)).to_i
       @name                = opts.name                || create_user_name
+      @twitter_id          = opts.twitter_id          || @name.downcase.gsub(" ", "_")
       @password            = opts.password            || Faker::Internet.password
       @access_token        = opts.access_token        || create_access_token
       @access_token_secret = opts.access_token_secret || Faker::Lorem.characters(45)
@@ -25,7 +26,7 @@ module Twimock
 
     def create_user_name
       n = Faker::Name.name
-      n.include?("'") ? create_user_name : n
+      (n.include?("'") || n.include?(".")) ? create_user_name : n
     end
 
     def create_access_token

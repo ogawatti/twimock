@@ -7,6 +7,7 @@ describe Twimock::User do
   let(:table_name)     { :users }
   let(:column_names)   { [ :id,
                            :name,
+                           :twitter_id,
                            :password,
                            :access_token,
                            :access_token_secret,
@@ -15,6 +16,7 @@ describe Twimock::User do
 
   let(:id)                  { 1 }
   let(:name)                { "test user" }
+  let(:twitter_id)          { "test_user" }
   let(:password)            { "testpass" }
   let(:access_token)        { "test_token" }
   let(:access_token_secret) { "test_token_secret" }
@@ -22,6 +24,7 @@ describe Twimock::User do
   let(:created_at)          { Time.now }
   let(:options)             { { id:                  id, 
                                 name:                name,
+                                twitter_id:          twitter_id,
                                 password:            password,
                                 access_token:        access_token,
                                 access_token_secret: access_token_secret,
@@ -58,6 +61,17 @@ describe Twimock::User do
         describe '.size' do
           subject { Twimock::User.new.name.size }
           it { is_expected.to be > 0 }
+        end
+      end
+
+      describe '.twitter_id' do
+        before { @user = Twimock::User.new }
+        subject { @user.twitter_id }
+        it { is_expected.to be_kind_of String }
+
+        describe '.size' do
+          subject { @user.twitter_id.size }
+          it { is_expected.to eq @user.name.size }
         end
       end
 
