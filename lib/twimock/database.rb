@@ -95,12 +95,13 @@ module Twimock
         CREATE TABLE users (
           id                   INTEGER   PRIMARY KEY AUTOINCREMENT,
           name                 TEXT      NOT NULL,
+          twitter_id           TEXT      NOT NULL,
           password             TEXT      NOT NULL,
           access_token         TEXT      NOT NULL,
           access_token_secret  TEXT      NOT NULL,
           application_id       INTEGER   NOT NULL,
           created_at           DATETIME  NOT NULL,
-          UNIQUE(access_token, access_token_secret));
+          UNIQUE(twitter_id, access_token, access_token_secret));
       SQL
     end
 
