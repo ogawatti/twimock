@@ -41,10 +41,10 @@ module Twimock
       def body
         # id, nameの値は固定
         "{
-          \"id\":1422515903,
-          \"id_str\":\"1422515903\",
-          \"name\":\"test_account\",
-          \"screen_name\":\"test_account\",
+          \"id\":#{@user.id},
+          \"id_str\":\"#{@user.id}\",
+          \"name\":\"#{@user.name}\",
+          \"screen_name\":\"#{@user.name}\",
           \"location\":\"\",
           \"profile_location\":null,
           \"description\":\"\",
