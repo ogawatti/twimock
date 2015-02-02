@@ -14,18 +14,16 @@ module Twimock
         if env["REQUEST_METHOD"] == METHOD && env["PATH_INFO"] == PATH
           # 認証
           # ユーザ情報発行
-=begin
           begin
             auth_header = env["authorization"]
             raise if auth_header.blank?
             authorization = parse_authorization_header(auth_header.first)
-            raise unless validate_authorization_header(authorization)
-            raise unless @application = Twimock::Application.find_by_api_key(authorization.oauth_consumer_key)
-            raise unless @user = Twimock::User.find_by_access_token(authorization.oauth_token)
+#            raise unless validate_authorization_header(authorization)
+#            raise unless @application = Twimock::Application.find_by_api_key(authorization.oauth_consumer_key)
+#            raise unless @user = Twimock::User.find_by_access_token(authorization.oauth_token)
           rescue
             return unauthorized
           end
-=end
           status = '200 OK'
           header = { "Content-Length" => body.bytesize }
           [ status, header, [ body ] ]
@@ -36,11 +34,9 @@ module Twimock
 
       private
 
-=begin
       def unauthorized
         [ "401 Unauthorized", {}, "" ]
       end
-=end
 
       def body
         # id, nameの値は固定
@@ -100,6 +96,7 @@ module Twimock
         return false unless authorization.oauth_version == "1.0"
         true
       end
+=end
 
       def parse_authorization_header(auth_header)
         raise unless auth_header =~ AUTHORIZATION_REGEXP
@@ -113,7 +110,6 @@ module Twimock
         authorization.oauth_version          = $7
         authorization
       end
-=end
     end
   end
 end

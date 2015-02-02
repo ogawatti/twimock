@@ -28,7 +28,6 @@ describe Twimock::API::AccountVerifyCredentials do
     it { is_expected.to eq authorization_regexp }
   end
 
-=begin
   shared_context '401 Unauthorizaed Account Verify Credentials', assert: :UnauthorizedAccountVerifyCredentials do
     it 'should return 401 Unauthorized' do
       get path, body, header
@@ -39,7 +38,6 @@ describe Twimock::API::AccountVerifyCredentials do
       expect(last_response.body).to be_blank
     end
   end
-=end
 
   describe "GET '/1.1/account/verify_credentials.json'" do
     context 'with authorization header' do
@@ -115,11 +113,11 @@ describe Twimock::API::AccountVerifyCredentials do
         end
       end
 
-=begin
       context 'that is incorrect format', assert: :UnauthorizedAccountVerifyCredentials do
         before { @authorization = ["OAuth consumer_key=\"test_consumer_key\""] }
       end
 
+=begin
       context 'but consumer_key is invalid', assert: :UnauthorizedAccountVerifyCredentials do
         before do
           app = Twimock::Application.new
@@ -129,10 +127,8 @@ describe Twimock::API::AccountVerifyCredentials do
 =end
     end
 
-=begin
     context 'without authorization header', assert: :UnauthorizedAccountVerifyCredentials do
     end
-=end
   end
 
   describe "GET '/test'" do
