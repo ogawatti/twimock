@@ -14,6 +14,7 @@ module Twimock
         if env["REQUEST_METHOD"] == METHOD && env["PATH_INFO"] == PATH
           # 認証
           # ユーザ情報発行
+=begin
           begin
             auth_header = env["authorization"]
             raise if auth_header.blank?
@@ -24,6 +25,7 @@ module Twimock
           rescue
             return unauthorized
           end
+=end
           status = '200 OK'
           header = { "Content-Length" => body.bytesize }
           [ status, header, [ body ] ]
@@ -34,16 +36,21 @@ module Twimock
 
       private
 
+=begin
       def unauthorized
         [ "401 Unauthorized", {}, "" ]
       end
+=end
 
       def body
+        # id, nameのみJSONで返す(値は固定)
         "{
-          \"id\":#{@user.id},
-          \"id_str\":\"#{@user.id}\",
-          \"name\":\"#{@user.name}\",
-          \"screen_name\":\"#{@user.name}\",
+          \"id\":1422515903,
+          \"id_str\":\"1422515903\",
+          \"name\":\"test_account\"
+        }".gsub!(/(^\s+|\n)/,'')
+=begin
+          \"screen_name\":\"test_account\",
           \"location\":\"\",
           \"profile_location\":null,
           \"description\":\"\",
@@ -70,6 +77,7 @@ module Twimock
           \"profile_background_tile\":false,
           \"profile_image_url\":\"http:\/\/abs.twimg.com\/sticky\/default_profile_images\/default_profile_0_normal.png\",
           \"profile_image_url_https\":\"https:\/\/abs.twimg.com\/sticky\/default_profile_images\/default_profile_0_normal.png\",
+          \"profile_banner_url\":\"\",
           \"profile_link_color\":\"0084B4\",
           \"profile_sidebar_border_color\":\"A8C7F7\",
           \"profile_sidebar_fill_color\":\"C0DFEC\",
@@ -81,8 +89,10 @@ module Twimock
           \"follow_request_sent\":false,
           \"notifications\":false
         }".gsub!(/(^\s+|\n)/,'')
+=end
       end
 
+=begin
       def validate_authorization_header(authorization)
         return false unless authorization.oauth_consumer_key.size > 0
         return false unless authorization.oauth_nonce.size > 0
@@ -106,6 +116,7 @@ module Twimock
         authorization.oauth_version          = $7
         authorization
       end
+=end
     end
   end
 end
