@@ -51,11 +51,11 @@ describe Twimock::API::AccountVerifyCredentials do
       context 'that is correct' do
         before do 
           stub_const("Twimock::Database::DEFAULT_DB_NAME", db_name)
-          app = Twimock::Application.new
-          app.save!
-          user = Twimock::User.new(application_id: app.id)
-          user.save!
-          @authorization = [ "OAuth oauth_consumer_key=\"#{app.api_key}\", oauth_nonce=\"Tc400qacfXAoixQ5Tk9yeFjdBBrDb7U3Sdgs7WA8cM\", oauth_signature=\"I7LRwjN%2FRvqp53kia2fGCg%2FrBHo%3D\", oauth_signature_method=\"HMAC-SHA1\", oauth_timestamp=\"1422273906\", oauth_token=\"#{user.access_token}\", oauth_version=\"1.0\"" ]
+          @app = Twimock::Application.new
+          @app.save!
+          @user = Twimock::User.new(application_id: @app.id)
+          @user.save!
+          @authorization = [ "OAuth oauth_consumer_key=\"#{@app.api_key}\", oauth_nonce=\"Tc400qacfXAoixQ5Tk9yeFjdBBrDb7U3Sdgs7WA8cM\", oauth_signature=\"I7LRwjN%2FRvqp53kia2fGCg%2FrBHo%3D\", oauth_signature_method=\"HMAC-SHA1\", oauth_timestamp=\"1422273906\", oauth_token=\"#{@user.access_token}\", oauth_version=\"1.0\"" ]
         end
 
         it 'should return 200 OK' do
@@ -65,6 +65,11 @@ describe Twimock::API::AccountVerifyCredentials do
           expect(last_response.header).not_to be_blank
           expect(last_response.header['Content-Length']).to eq last_response.body.bytesize.to_s
           expect(last_response.body).not_to be_blank
+
+          parsed_body = JSON.parse(last_response.body)
+          expect(parsed_body['id']).to eq @user.id
+          expect(parsed_body['name']).to eq @user.name
+          # TODO JSON形式で返ってくるbodyの検証
         end
       end
 
