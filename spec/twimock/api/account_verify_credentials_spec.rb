@@ -51,11 +51,11 @@ describe Twimock::API::AccountVerifyCredentials do
       context 'that is correct' do
         before do 
           stub_const("Twimock::Database::DEFAULT_DB_NAME", db_name)
-          @app = Twimock::Application.new
-          @app.save!
-          @user = Twimock::User.new(application_id: @app.id)
+          app = Twimock::Application.new
+          app.save!
+          @user = Twimock::User.new(application_id: app.id)
           @user.save!
-          @authorization = [ "OAuth oauth_consumer_key=\"#{@app.api_key}\", oauth_nonce=\"Tc400qacfXAoixQ5Tk9yeFjdBBrDb7U3Sdgs7WA8cM\", oauth_signature=\"I7LRwjN%2FRvqp53kia2fGCg%2FrBHo%3D\", oauth_signature_method=\"HMAC-SHA1\", oauth_timestamp=\"1422273906\", oauth_token=\"#{@user.access_token}\", oauth_version=\"1.0\"" ]
+          @authorization = [ "OAuth oauth_consumer_key=\"#{app.api_key}\", oauth_nonce=\"Tc400qacfXAoixQ5Tk9yeFjdBBrDb7U3Sdgs7WA8cM\", oauth_signature=\"I7LRwjN%2FRvqp53kia2fGCg%2FrBHo%3D\", oauth_signature_method=\"HMAC-SHA1\", oauth_timestamp=\"1422273906\", oauth_token=\"#{@user.access_token}\", oauth_version=\"1.0\"" ]
         end
 
         it 'should return 200 OK' do
@@ -73,15 +73,15 @@ describe Twimock::API::AccountVerifyCredentials do
           expect(parsed_body['name']).to eq @user.name
           expect(parsed_body['screen_name']).to eq @user.name
           expect(parsed_body['location']).to be_empty
-          expect(parsed_body['profile_location']).to be_nil
+          expect(parsed_body['profile_location']).to eq 'null'
           expect(parsed_body['description']).to be_empty
-          expect(parsed_body['url']).to be_nil
+          expect(parsed_body['url']).to eq 'null'
           expect(parsed_body['entities']).not_to be_nil
           expect(parsed_body['protected']).to be_falsey
           expect(parsed_body['followers_count']).to eq 1
           expect(parsed_body['friends_count']).to eq 1
           expect(parsed_body['listed_count']).to eq 1
-          expect(parsed_body['created_at']).to eq 'Wed Apr 27 00:00:00 +0000 2011'
+          expect(parsed_body['created_at']).to eq @user.created_at.to_s
           expect(parsed_body['favourites_count']).to eq 1
           expect(parsed_body['utc_offset']).to eq 32400
           expect(parsed_body['time_zone']).to eq 'Tokyo'
