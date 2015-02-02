@@ -71,44 +71,7 @@ describe Twimock::API::AccountVerifyCredentials do
           expect(parsed_body['id']).to eq @user.id
           expect(parsed_body['id_str']).to eq @user.id.to_s
           expect(parsed_body['name']).to eq @user.name
-          expect(parsed_body['screen_name']).to eq @user.name
-          expect(parsed_body['location']).to be_empty
-          expect(parsed_body['profile_location']).to eq 'null'
-          expect(parsed_body['description']).to be_empty
-          expect(parsed_body['url']).to eq 'null'
-          expect(parsed_body['entities']).not_to be_nil
-          expect(parsed_body['protected']).to be_falsey
-          expect(parsed_body['followers_count']).to eq 1
-          expect(parsed_body['friends_count']).to eq 1
-          expect(parsed_body['listed_count']).to eq 1
           expect(parsed_body['created_at']).to eq @user.created_at.to_s
-          expect(parsed_body['favourites_count']).to eq 1
-          expect(parsed_body['utc_offset']).to eq 32400
-          expect(parsed_body['time_zone']).to eq 'Tokyo'
-          expect(parsed_body['geo_enabled']).to be_truthy
-          expect(parsed_body['verified']).to be_falsey
-          expect(parsed_body['statuses_count']).to eq 1
-          expect(parsed_body['lang']).to eq 'ja'
-          expect(parsed_body['contributors_enabled']).to be_falsey
-          expect(parsed_body['is_translator']).to be_falsey
-          expect(parsed_body['is_translation_enabled']).to be_falsey
-          expect(parsed_body['profile_background_color']).to eq '022330'
-          expect(parsed_body['profile_background_image_url']).to eq 'http://abs.twimg.com/images/themes/theme1/bg.png'
-          expect(parsed_body['profile_background_image_url_https']).to eq 'https://abs.twimg.com/images/themes/theme1/bg.png'
-          expect(parsed_body['profile_background_tile']).to be_falsey
-          expect(parsed_body['profile_image_url']).to eq 'http://abs.twimg.com/sticky/default_profile_images/default_profile_0_normal.png'
-          expect(parsed_body['profile_image_url_https']).to eq 'https://abs.twimg.com/sticky/default_profile_images/default_profile_0_normal.png'
-          expect(parsed_body['profile_banner_url']).to be_empty
-          expect(parsed_body['profile_link_color']).to eq '0084B4'
-          expect(parsed_body['profile_sidebar_border_color']).to eq 'A8C7F7'
-          expect(parsed_body['profile_sidebar_fill_color']).to eq 'C0DFEC'
-          expect(parsed_body['profile_text_color']).to eq '333333'
-          expect(parsed_body['profile_use_background_image']).to be_truthy
-          expect(parsed_body['default_profile']).to be_falsey
-          expect(parsed_body['default_profile_image']).to be_falsey
-          expect(parsed_body['following']).to be_falsey
-          expect(parsed_body['follow_request_sent']).to be_falsey
-          expect(parsed_body['notifications']).to be_falsey
         end
       end
 

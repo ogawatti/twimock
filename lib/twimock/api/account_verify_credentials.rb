@@ -27,7 +27,10 @@ module Twimock
             return unauthorized
           end
           status = '200 OK'
-          body = user_info(user).to_json
+          body = { id: user.id,
+                   id_str: user.id.to_s,
+                   name: user.name,
+                   created_at: user.created_at }.to_json
           header = { "Content-Length" => body.bytesize }
           [ status, header, [ body ] ]
         else
@@ -36,50 +39,6 @@ module Twimock
       end
 
       private
-
-      def user_info(user)
-        { id: user.id,
-          id_str: user.id.to_s,
-          name: user.name,
-          screen_name: user.name,
-          location: "",
-          profile_location: 'null',
-          description: "",
-          url: 'null',
-          entities: {description: {urls: []}},
-          protected: false,
-          followers_count: 1,
-          friends_count: 1,
-          listed_count: 1,
-          created_at: user.created_at,
-          favourites_count: 1,
-          utc_offset: 32400,
-          time_zone: 'Tokyo',
-          geo_enabled: true,
-          verified: false,
-          statuses_count: 1,
-          lang: 'ja',
-          contributors_enabled: false,
-          is_translator: false,
-          is_translation_enabled: false,
-          profile_background_color: '022330',
-          profile_background_image_url: 'http://abs.twimg.com/images/themes/theme1/bg.png',
-          profile_background_image_url_https: 'https://abs.twimg.com/images/themes/theme1/bg.png',
-          profile_background_tile: false,
-          profile_image_url: 'http://abs.twimg.com/sticky/default_profile_images/default_profile_0_normal.png',
-          profile_image_url_https: 'https://abs.twimg.com/sticky/default_profile_images/default_profile_0_normal.png',
-          profile_banner_url: "",
-          profile_link_color: '0084B4',
-          profile_sidebar_border_color: 'A8C7F7',
-          profile_sidebar_fill_color: 'C0DFEC',
-          profile_text_color: '333333',
-          profile_use_background_image: true,
-          default_profile: false,
-          default_profile_image: false,
-          following: false,
-          follow_request_sent: false,
-          notifications: false }
-      end
 
       def validate_authorization_header(authorization)
         return false unless authorization.oauth_consumer_key.size > 0
