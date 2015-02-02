@@ -43,13 +43,11 @@ module Twimock
 =end
 
       def body
-        # id, nameのみJSONで返す(値は固定)
+        # id, nameの値は固定
         "{
           \"id\":1422515903,
           \"id_str\":\"1422515903\",
-          \"name\":\"test_account\"
-        }".gsub!(/(^\s+|\n)/,'')
-=begin
+          \"name\":\"test_account\",
           \"screen_name\":\"test_account\",
           \"location\":\"\",
           \"profile_location\":null,
@@ -89,7 +87,6 @@ module Twimock
           \"follow_request_sent\":false,
           \"notifications\":false
         }".gsub!(/(^\s+|\n)/,'')
-=end
       end
 
 =begin
