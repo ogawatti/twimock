@@ -117,14 +117,12 @@ describe Twimock::API::AccountVerifyCredentials do
         before { @authorization = ["OAuth consumer_key=\"test_consumer_key\""] }
       end
 
-=begin
       context 'but consumer_key is invalid', assert: :UnauthorizedAccountVerifyCredentials do
         before do
           app = Twimock::Application.new
           @authorization = [ "OAuth oauth_consumer_key=\"#{app.api_key}\", oauth_nonce=\"Tc400qacfXAoixQ5Tk9yeFjdBBrDb7U3Sdgs7WA8cM\", oauth_signature=\"I7LRwjN%2FRvqp53kia2fGCg%2FrBHo%3D\", oauth_signature_method=\"HMAC-SHA1\", oauth_timestamp=\"1422273906\", oauth_token=\"288818073-pHvCoXJtYnUeHaIpjNptFW53YAAgtpyDhkmcHPqy\", oauth_version=\"1.0\"" ]
         end
       end
-=end
     end
 
     context 'without authorization header', assert: :UnauthorizedAccountVerifyCredentials do

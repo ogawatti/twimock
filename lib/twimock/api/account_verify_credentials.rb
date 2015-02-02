@@ -18,9 +18,9 @@ module Twimock
             auth_header = env["authorization"]
             raise if auth_header.blank?
             authorization = parse_authorization_header(auth_header.first)
-#            raise unless validate_authorization_header(authorization)
-#            raise unless @application = Twimock::Application.find_by_api_key(authorization.oauth_consumer_key)
-#            raise unless @user = Twimock::User.find_by_access_token(authorization.oauth_token)
+            raise unless validate_authorization_header(authorization)
+            raise unless @application = Twimock::Application.find_by_api_key(authorization.oauth_consumer_key)
+            raise unless @user = Twimock::User.find_by_access_token(authorization.oauth_token)
           rescue
             return unauthorized
           end
@@ -85,7 +85,6 @@ module Twimock
         }".gsub!(/(^\s+|\n)/,'')
       end
 
-=begin
       def validate_authorization_header(authorization)
         return false unless authorization.oauth_consumer_key.size > 0
         return false unless authorization.oauth_nonce.size > 0
@@ -96,7 +95,6 @@ module Twimock
         return false unless authorization.oauth_version == "1.0"
         true
       end
-=end
 
       def parse_authorization_header(auth_header)
         raise unless auth_header =~ AUTHORIZATION_REGEXP
