@@ -53,8 +53,7 @@ describe Twimock::API::AccountVerifyCredentials do
           stub_const("Twimock::Database::DEFAULT_DB_NAME", db_name)
           @app = Twimock::Application.new
           @app.save!
-          # id, nameは固定値
-          @user = Twimock::User.new(id: 1422515903, name: 'test_account', application_id: @app.id)
+          @user = Twimock::User.new(application_id: @app.id)
           @user.save!
           @authorization = [ "OAuth oauth_consumer_key=\"#{@app.api_key}\", oauth_nonce=\"Tc400qacfXAoixQ5Tk9yeFjdBBrDb7U3Sdgs7WA8cM\", oauth_signature=\"I7LRwjN%2FRvqp53kia2fGCg%2FrBHo%3D\", oauth_signature_method=\"HMAC-SHA1\", oauth_timestamp=\"1422273906\", oauth_token=\"#{@user.access_token}\", oauth_version=\"1.0\"" ]
         end
