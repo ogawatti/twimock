@@ -12,25 +12,20 @@ module Twimock
 
       def call(env)
         if env["REQUEST_METHOD"] == METHOD && env["PATH_INFO"] == PATH
-          # 認証
-          # ユーザ情報発行
           begin
             auth_header = env["authorization"]
             raise if auth_header.blank?
             authorization = parse_authorization_header(auth_header.first)
             raise unless validate_authorization_header(authorization)
             raise unless application = Twimock::Application.find_by_api_key(authorization.oauth_consumer_key)
-            raise unless user = Twimock::User.find_by_application_id(application.id)
-            raise unless user.access_token == authorization.oauth_token
+            raise unless user        = Twimock::User.find_by_access_token(authorization.oauth_token)
+            raise unless user.application_id == application.id
             # TODO: 要改善 AccessTokenをUserから分離
           rescue
             return unauthorized
           end
           status = '200 OK'
-          body = { id: user.id,
-                   id_str: user.id.to_s,
-                   name: user.name,
-                   created_at: user.created_at }.to_json
+          body = user.info.to_json
           header = { "Content-Length" => body.bytesize }
           [ status, header, [ body ] ]
         else

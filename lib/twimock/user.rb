@@ -22,6 +22,13 @@ module Twimock
       @created_at     = opts.created_at
     end
 
+    def info
+      { id:         @id,
+        id_str:     @id.to_s,
+        name:       @name,
+        created_at: @created_at }
+    end
+
     private
 
     def create_user_name
