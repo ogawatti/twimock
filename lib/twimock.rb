@@ -8,6 +8,7 @@ require "twimock/request_token"
 require "twimock/auth_hash"
 require "twimock/errors"
 require "twimock/api"
+require "twimock/omniauth_twitter"
 
 module Twimock
   extend self

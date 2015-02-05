@@ -5,17 +5,19 @@ describe Twimock::RequestToken do
 
   let(:db_name)        { ".test" }
   let(:table_name)     { :request_tokens }
-  let(:column_names)   { [ :id, :string, :secret, :application_id, :user_id, :created_at ] }
+  let(:column_names)   { [ :id, :string, :secret, :verifier, :application_id, :user_id, :created_at ] }
 
   let(:id)             { 1 }
   let(:string)         { "test_token" }
   let(:secret)         { "test_token_secret" }
+  let(:verifier)       { "test_token_verifier" }
   let(:application_id) { 1 }
   let(:user_id)        { 1 }
   let(:created_at)     { Time.now }
   let(:options)        { { id:             id, 
                            string:         string,
                            secret:         secret,
+                           verifier:       verifier,
                            application_id: application_id,
                            user_id:        user_id,
                            created_at:     created_at } }
@@ -58,6 +60,16 @@ describe Twimock::RequestToken do
 
         describe '.size' do
           subject { Twimock::RequestToken.new.secret.size }
+          it { is_expected.to eq 32 }
+        end
+      end
+
+      describe '.verifier' do
+        subject { Twimock::RequestToken.new.verifier }
+        it { is_expected.to be_kind_of String }
+
+        describe '.size' do
+          subject { Twimock::RequestToken.new.verifier.size }
           it { is_expected.to eq 32 }
         end
       end

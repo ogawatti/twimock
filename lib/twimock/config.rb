@@ -2,9 +2,18 @@ require 'yaml'
 require 'hashie'
 require 'twimock/errors'
 require 'twimock/database'
+require 'active_support'
 
 module Twimock
   module Config
+    mattr_accessor :host
+    mattr_accessor :port
+    mattr_accessor :callback_url
+
+    @@host         = "api.twimock.com"
+    @@port         = 443
+    @@callback_url = "http://localhost:3000/auth/twiter/callback"
+
     extend self
 
     def default_database

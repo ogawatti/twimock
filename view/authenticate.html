@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <title>Twimockログイン</title>
+  </head>
+  <body>
+    <h1>Twimockログイン</h1>
+    <!-- oauth_token を埋め込む -->
+    <!-- https://api.twitter.com/oauth/authorize?session[username_or_email]=makotonality&remember_me=1&oauth_token=1EEvIJOCyKziUaUxcO27IJD12wtMBhtA -->
+    <form id="login_form" action="/twimock/oauth" method="post">
+      <label>メールまたは電話番号:<input type="text" name="email"></label><br>
+      <label>パスワード:<input type="password" name="pass"></label><br>
+      <input type="submit" name="login" value="ログイン">
+    </form>
+  </body>
+</html>
