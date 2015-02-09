@@ -23,10 +23,12 @@ module Twimock
     end
 
     def info
-      { id:         @id,
-        id_str:     @id.to_s,
-        name:       @name,
-        created_at: @created_at }
+      Hashie::Mash.new(
+        { id:         @id,
+          id_str:     @id.to_s,
+          name:       @name,
+          created_at: @created_at }
+      )
     end
 
     private

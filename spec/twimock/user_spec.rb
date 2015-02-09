@@ -180,4 +180,19 @@ describe Twimock::User do
       end
     end
   end
+
+  describe '#info' do
+    let(:user) do
+      { id:         1,
+        id_str:     '1',
+        name:       'test user',
+        created_at: Time.now }
+    end
+    let(:info) { Twimock::User.new(user).info }
+
+    it 'should return user information' do
+      expect(info).to be_kind_of Hashie::Mash
+      user.keys.each { |k| expect(info.send(k)).to eq user[k] }
+    end
+  end
 end
