@@ -7,6 +7,7 @@ module Twimock
     TABLE_NAME = :users
     COLUMN_NAMES = [:id, :name, :twitter_id, :password, :access_token, :access_token_secret, :application_id, :created_at]
     CHILDREN = [ RequestToken ]
+    INFO_KEYS = [:id, :name, :created_at]
 
     def initialize(options={})
       opts = Hashie::Mash.new(options)
@@ -20,15 +21,6 @@ module Twimock
       app_id = opts.application_id.to_i
       @application_id = (app_id > 0) ? app_id : nil
       @created_at     = opts.created_at
-    end
-
-    def info
-      Hashie::Mash.new(
-        { id:         @id,
-          id_str:     @id.to_s,
-          name:       @name,
-          created_at: @created_at }
-      )
     end
 
     private
