@@ -23,6 +23,13 @@ module Twimock
       @created_at     = opts.created_at
     end
 
+    def info
+      info_hash = {}
+      INFO_KEYS.each { |key| info_hash[key] = self.instance_variable_get("@#{key}") }
+      info_hash[:id_str] = info_hash[:id].to_s
+      Hashie::Mash.new(info_hash)
+    end
+
     private
 
     def create_user_name

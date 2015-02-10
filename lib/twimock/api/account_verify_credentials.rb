@@ -25,11 +25,7 @@ module Twimock
             return unauthorized
           end
           status = '200 OK'
-          user_info = Hash.new.tap do |info|
-            Twimock::User::INFO_KEYS.each { |key| info[key] = user.send(key) }
-            info[:id_str] = info[:id].to_s
-          end
-          body = user_info.to_json
+          body = user.info.to_json
           header = { "Content-Length" => body.bytesize }
           [ status, header, [ body ] ]
         else
