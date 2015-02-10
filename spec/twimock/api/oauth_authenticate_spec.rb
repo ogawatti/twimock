@@ -3,6 +3,7 @@ require 'rack/test'
 
 describe Twimock::API::OAuthAuthenticate do
   include TestApplicationHelper
+  include APISpecHelper
   include Rack::Test::Methods
 
   let(:method)   { 'GET' }
@@ -22,61 +23,57 @@ describe Twimock::API::OAuthAuthenticate do
     it { is_expected.to eq path }
   end
 
-  describe "GET '/oauth/request_token'" do
-    context 'without oauth token' do
-      it 'should return 401' do
-        get path, body, header
+  describe "GET '/oauth/authenticate'" do
+    before { stub_const("Twimock::Database::DEFAULT_DB_NAME", db_name) }
+    after  { database.drop }
 
-        expect(last_response.status).to eq 401
-        expect(last_response.header).not_to be_blank
-        expect(last_response.header['Content-Length']).to eq 0.to_s
-        expect(last_response.body).to be_blank
+    let(:db_name)  { ".test" }
+    let(:database) { Twimock::Database.new }
+
+    context 'without oauth token', assert: :UnauthorizedRequestToken do
+      before { get path, body, header }
+    end
+
+    context 'with invalid oauth token', assert: :UnauthorizedRequestToken do
+      before do
+        request_token = Twimock::RequestToken.new
+        query_string = "request_token=#{request_token.string}"
+        get path + "?" + query_string , body, header
       end
     end
 
-    context 'with oauth token' do
-      before { stub_const("Twimock::Database::DEFAULT_DB_NAME", db_name) }
-      after  { database.drop }
-
-      let(:db_name)  { ".test" }
-      let(:database) { Twimock::Database.new }
-
-      context 'but it is invalid' do
-        before do
-          request_token = Twimock::RequestToken.new
-          @path = path + "?oauth_token=" + request_token.string
-        end
-
-        it 'should return 401' do
-          get @path, body, header
-          
-          expect(last_response.status).to eq 401
-          expect(last_response.header).not_to be_blank
-          expect(last_response.header['Content-Length']).to eq 0.to_s
-          expect(last_response.body).to be_blank
-        end
+    context 'with valid oauth token' do
+      before do
+        application = Twimock::Application.new
+        application.save!
+        @request_token = Twimock::RequestToken.new(application_id: application.id)
+        @request_token.save!
+        @path = path + "?oauth_token=#{@request_token.string}"
       end
 
-      context 'that is valid' do
-        before do
-          application = Twimock::Application.new
-          application.save!
-          request_token = Twimock::RequestToken.new(application_id: application.id)
-          request_token.save!
-          @path = path + "?oauth_token=" + request_token.string
-        end
-
-        it 'should return 200' do
-          get @path, body, header
+      it 'should return 200 OK' do
+        get @path, body, header
           
-          view = Twimock::API::OAuthAuthenticate.view
-          content_length = view.bytesize.to_s
+        view = Twimock::API::OAuthAuthenticate.view(@request_token.string)
+        expect(last_response.status).to eq 200
+        expect(last_response.header).not_to be_blank
+        expect(last_response.header['Content-Length']).to eq last_response.body.bytesize.to_s
+        expect(last_response.body).to eq view
+        expect(last_response.body).to be_include(@request_token.string)
+        expect(last_response.body).to be_include(Twimock::API::IntentSessions::PATH)
+      end
+    end
 
-          expect(last_response.status).to eq 200
-          expect(last_response.header).not_to be_blank
-          expect(last_response.header['Content-Length']).to eq content_length
-          expect(last_response.body).to eq view
-        end
+    context 'raise error that is not catched' do
+      before { allow_any_instance_of(Rack::Request).to receive(:params) { lambda { raise } } }
+
+      it 'should return 500' do
+        get path, body, header
+
+        expect(last_response.status).to eq 500
+        expect(last_response.header).not_to be_blank
+        expect(last_response.header['Content-Length']).to eq last_response.body.bytesize.to_s
+        expect(last_response.body).to be_blank
       end
     end
   end

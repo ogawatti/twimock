@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ja" dir="ltr" class="">
+  <head>
+    <meta charset="utf-8">
+    <title>Twimock / アプリケーション認証</title>
+  </head>
+
+  <body class="oauth authenticate write tfw ja logged-out noloki">
+    <div id="bd" role="main">
+      <div class="auth">
+        <h1>Twimockログイン</h1>
+        <!-- POST https://twitter.com/intent/sessions -->
+        <form id="oauth_form" action="<%= @action_url %>" method="get">
+          <label>ユーザー名、またはメールアドレス<input type="text" name="username_or_email"></label><br>
+          <label>パスワード<input type="password" name="password"></label><br>
+          <input type="hidden" name="remember_me" value="1">
+          <input type="hidden" name="oauth_token" value="<%= @oauth_token %>">
+          <input type="submit" value="ログイン" class="submit button selected" id="allow">
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

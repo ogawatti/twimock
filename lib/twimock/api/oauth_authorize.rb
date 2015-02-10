@@ -6,11 +6,10 @@ module Twimock
     # ログインに成功したら
     # RequestTokenとUserの紐付けを行うAPI
 
+    # GET "http://example.org/oauth/authorize?oauth_token=xxx&remember_me=1&session[username_or_email]=xxx"
     class OAuthAuthorize < OAuth
       METHOD         = "GET"
       PATH           = "/oauth/authorize"
-      VIEW_DIRECTORY = File.expand_path("../../../../view", __FILE__)
-      VIEW_FILE_NAME = "authorize.html"
 
       def call(env)
         if env["REQUEST_METHOD"] == METHOD && env["PATH_INFO"] == PATH
@@ -43,10 +42,6 @@ module Twimock
         else
           super
         end
-      end
-
-      def self.view
-        File.read(filepath)
       end
 
       private

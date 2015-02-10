@@ -1,55 +1,68 @@
 require 'uri'
+require 'erb'
+require 'twimock/errors'
 
 module Twimock
   module API
     # OAuthでブラウザ認証するAPI
+    # GET http://api.twimock.com/authenticate?oauth_token=xxx
     class OAuthAuthenticate < OAuth
       METHOD = "GET"
       PATH   = "/oauth/authenticate"
       VIEW_DIRECTORY = File.expand_path("../../../../view", __FILE__)
-      VIEW_FILE_NAME = "authenticate.html"
+      VIEW_FILE_NAME = "authenticate.html.erb"
 
       def call(env)
         if env["REQUEST_METHOD"] == METHOD && env["PATH_INFO"] == PATH
           begin
-            raise if env["QUERY_STRING"].blank?
-            query = query_string_to_hash(env["QUERY_STRING"])
-            raise unless validate_query(query)
-            raise unless request_token = Twimock::RequestToken.find_by_string(query.oauth_token)
-            raise unless request_token.application_id
+            request = Rack::Request.new(env)
+            @oauth_token = request.params["oauth_token"]
 
-            # TODO : HTMLにoauth_token埋め込み
+            if !validate_oauth_token(@oauth_token)
+              raise Twimock::Errors::InvalidRequestToken.new
+            end
+
             status = 200
-            body   = OAuthAuthenticate.view
+            body   = OAuthAuthenticate.view(@oauth_token)
             header = { "Content-Length" => body.bytesize }
             [ status, header, [ body ] ]
+          rescue Twimock::Errors::InvalidRequestToken => @error
+            unauthorized
           rescue
-            return unauthorized
+            return [ 500, {}, [""] ]
           end
         else
           super
         end
       end
 
-      def self.view
-        File.read(filepath)
+      def self.view(oauth_token)
+        @action_url = Twimock::API::IntentSessions::PATH
+        @oauth_token = oauth_token
+        erb = ERB.new(File.read(filepath))
+        erb.result(binding)
       end
 
       private
 
+      def unauthorized
+        status = 401
+        error_code = @error.class.to_s.split("::").last
+        body   = { error: { code: error_code } }.to_json
+        header = { "Content-Type"   => "application/json; charset=utf-8",
+                   "Content-Length" => body.bytesize }
+        return [ status, header, [ body ] ]
+      end
+
+      def validate_oauth_token(oauth_token)
+        return false if oauth_token.blank?
+        return false unless request_token = Twimock::RequestToken.find_by_string(oauth_token)
+        return false unless request_token.application_id
+        true
+      end
+
       def self.filepath
         File.join(VIEW_DIRECTORY, VIEW_FILE_NAME)
-      end
-
-      def query_string_to_hash(query_string)
-        ary  = URI::decode_www_form(query_string)
-        hash = Hash[ary]
-        Hashie::Mash.new(hash)
-      end
-
-      def validate_query(query)
-        false unless query.oauth_token.blank?
-        true
       end
     end
   end
