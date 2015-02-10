@@ -24,10 +24,10 @@ module Twimock
     end
 
     def info
-      info_hash = {}
+      info_hash = Hashie::Mash.new({})
       INFO_KEYS.each { |key| info_hash[key] = self.instance_variable_get("@#{key}") }
-      info_hash[:id_str] = info_hash[:id].to_s
-      Hashie::Mash.new(info_hash)
+      info_hash.id_str = info_hash.id.to_s
+      info_hash
     end
 
     private
