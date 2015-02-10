@@ -13,6 +13,9 @@ describe Twimock::User do
                            :access_token_secret,
                            :application_id,
                            :created_at ] }
+  let(:info_keys)      { [ :id,
+                           :name,
+                           :created_at ] }
 
   let(:id)                  { 1 }
   let(:name)                { "test user" }
@@ -41,6 +44,11 @@ describe Twimock::User do
   describe '::COLUMN_NAMES' do
     subject { Twimock::User::COLUMN_NAMES }
     it { is_expected.to eq column_names }
+  end
+
+  describe '::INFO_KEYS' do
+    subject { Twimock::User::INFO_KEYS }
+    it { is_expected.to eq info_keys }
   end
 
   describe '#initialize' do
@@ -178,6 +186,18 @@ describe Twimock::User do
           end
         end
       end
+    end
+  end
+
+  describe '#info' do
+    let(:user) { Twimock::User.new }
+    let(:info) { user.info }
+    let(:info_keys) { [:id, :id_str, :name, :created_at] }
+
+    it 'should return user information' do
+      expect(info).to be_kind_of Hashie::Mash
+      Twimock::User::INFO_KEYS.each { |key| expect(info.send(key)).to eq user.send(key) }
+      expect(info.id_str).to eq user.id.to_s
     end
   end
 end
