@@ -96,12 +96,13 @@ module Twimock
           id                   INTEGER   PRIMARY KEY AUTOINCREMENT,
           name                 TEXT      NOT NULL,
           twitter_id           TEXT      NOT NULL,
+          email                TEXT      NOT NULL,
           password             TEXT      NOT NULL,
           access_token         TEXT      NOT NULL,
           access_token_secret  TEXT      NOT NULL,
           application_id       INTEGER   NOT NULL,
           created_at           DATETIME  NOT NULL,
-          UNIQUE(twitter_id, access_token, access_token_secret));
+          UNIQUE(twitter_id, email, access_token, access_token_secret));
       SQL
     end
 
@@ -111,10 +112,11 @@ module Twimock
           id              INTEGER   PRIMARY KEY AUTOINCREMENT,
           string          TEXT      NOT NULL,
           secret          TEXT      NOT NULL,
+          verifier        TEXT      NOT NULL,
           application_id  INTEGER   NOT NULL,
           user_id         INTEGER,
           created_at      DATETIME  NOT NULL,
-          UNIQUE(string, secret));
+          UNIQUE(string, secret, verifier));
       SQL
     end
   end

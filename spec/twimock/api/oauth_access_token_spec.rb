@@ -65,6 +65,31 @@ describe Twimock::API::OAuthAccessToken do
       let(:header) { { "authorization" => @authorization } }
 
       context 'that is correct' do
+
+        shared_examples "Get Access Token" do
+          it 'should return 200 Created' do
+            post path, body, header
+
+            expect(last_response.status).to eq 200
+            expect(last_response.header).not_to be_blank
+            expect(last_response.header['Content-Length']).to eq last_response.body.bytesize.to_s
+            expect(last_response.body).not_to be_blank
+
+            index = last_response.body =~ /^oauth_token=(.*)&oauth_token_secret=(.*)&user_id=(.*)&screen_name=(.*)$/
+            expect(index).to eq 0
+            oauth_token        = $1
+            oauth_token_secret = $2
+            user_id            = $3.to_i
+            screen_name        = $4
+
+            user = Twimock::User.find_by_access_token(oauth_token)
+            expect(user).not_to be_nil
+            expect(oauth_token_secret).to eq user.access_token_secret
+            expect(user_id).to eq user.id
+            expect(screen_name).to eq user.twitter_id
+          end
+        end
+
         before do
           app = Twimock::Application.new
           app.save!
@@ -72,30 +97,21 @@ describe Twimock::API::OAuthAccessToken do
           user.save!
           request_token = Twimock::RequestToken.new(application_id: app.id, user_id: user.id)
           request_token.save!
-
           @authorization = create_authorization_header(app.api_key, request_token.string)
         end
+        it_behaves_like "Get Access Token"
 
-        it 'should return 200 Created' do
-          post path, body, header
-
-          expect(last_response.status).to eq 200
-          expect(last_response.header).not_to be_blank
-          expect(last_response.header['Content-Length']).to eq last_response.body.bytesize.to_s
-          expect(last_response.body).not_to be_blank
-
-          index = last_response.body =~ /^oauth_token=(.*)&oauth_token_secret=(.*)&user_id=(.*)&screen_name=(.*)$/
-          expect(index).to eq 0
-          oauth_token        = $1
-          oauth_token_secret = $2
-          user_id            = $3.to_i
-          screen_name        = $4
-
-          user = Twimock::User.find_by_access_token(oauth_token)
-          expect(user).not_to be_nil
-          expect(oauth_token_secret).to eq user.access_token_secret
-          expect(user_id).to eq user.id
-          expect(screen_name).to eq user.twitter_id
+        context 'authorization header is string' do
+          before do
+            app = Twimock::Application.new
+            app.save!
+            user = Twimock::User.new(application_id: app.id)
+            user.save!
+            request_token = Twimock::RequestToken.new(application_id: app.id, user_id: user.id)
+            request_token.save!
+            @authorization = create_authorization_header(app.api_key, request_token.string).first
+          end
+          it_behaves_like "Get Access Token"
         end
       end
 

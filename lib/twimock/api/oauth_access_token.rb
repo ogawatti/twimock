@@ -15,7 +15,10 @@ module Twimock
           begin
             auth_header = env["authorization"]
             raise if auth_header.blank?
-            authorization = parse_authorization_header(auth_header.first)
+            authorization = case auth_header
+            when Array  then parse_authorization_header(auth_header.first)
+            when String then parse_authorization_header(auth_header)
+            end
             raise unless validate_authorization_header(authorization)
             raise unless application   = Twimock::Application.find_by_api_key(authorization.oauth_consumer_key)
             raise unless request_token = Twimock::RequestToken.find_by_string(authorization.oauth_token)

@@ -1,6 +1,8 @@
 require 'twimock/api/application'
 require 'twimock/api/oauth_access_token'
 require 'twimock/api/oauth_request_token'
+require 'twimock/api/oauth_authenticate'
+require 'twimock/api/intent_sessions'
 require 'twimock/api/account_verify_credentials'
 require 'sham_rack'
 
