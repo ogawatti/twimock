@@ -5,8 +5,52 @@ require 'faker'
 describe Twimock::Config do
   let(:db_name) { ".test" }
   let(:database) { Twimock::Database.new }
+
+  let(:host) { "api.twimock.com" }
+  let(:port) { 443 }
+  let(:callback_url) { "http://localhost/auth/twiter/callback" }
+
   before { stub_const("Twimock::Database::DEFAULT_DB_NAME", db_name) }
   after { database.drop }
+
+  describe '.host' do
+    after { Twimock::Config.host = host }
+
+    subject { Twimock::Config.host }
+    it { is_expected.to eq host }
+
+    context 'when set this' do
+      before { Twimock::Config.host = host }
+      let(:host) { "test.twimock.com" }
+      it { is_expected.to eq host }
+    end
+  end
+
+  describe '.port' do
+    after { Twimock::Config.port = port }
+
+    subject { Twimock::Config.port }
+    it { is_expected.to eq port }
+
+    context 'when set this' do
+      before { Twimock::Config.port = port }
+      let(:port) { 80 }
+      it { is_expected.to eq port }
+    end
+  end
+
+  describe '.callback_url' do
+    after { Twimock::Config.callback_url = callback_url }
+
+    subject { Twimock::Config.callback_url }
+    it { is_expected.to eq callback_url }
+
+    context 'when set this' do
+      before { Twimock::Config.callback_url = callback_url }
+      let(:callback_url) { "http://localhost:3000/users/auth/twitter/callback" }
+      it { is_expected.to eq callback_url }
+    end
+  end
 
   ['default_database', 'database']. each do |db|
     describe "##{db}" do

@@ -77,4 +77,24 @@ describe Twimock::API::OAuthAuthenticate do
       end
     end
   end
+
+  describe "POST '/oauth/authenticate'" do
+    it 'should return 200 OK' do
+      post '/oauth/authenticate'
+
+      expect(last_response.status).to eq 200
+      expect(last_response.body).to be_blank
+      expect(last_response.header).to be_blank
+    end
+  end
+
+  describe "GET '/oauth/authentication'" do
+    it 'should return 200 OK' do
+      get '/oauth/authentication'
+
+      expect(last_response.status).to eq 200
+      expect(last_response.body).to be_blank
+      expect(last_response.header).to be_blank
+    end
+  end
 end

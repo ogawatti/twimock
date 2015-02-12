@@ -12,7 +12,7 @@ module Twimock
 
     @@host         = "api.twimock.com"
     @@port         = 443
-    @@callback_url = "http://localhost:3000/auth/twiter/callback"
+    @@callback_url = "http://localhost/auth/twiter/callback"
 
     extend self
 

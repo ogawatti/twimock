@@ -34,20 +34,47 @@ describe Twimock::OmniAuthTwitter do
           @twitter.options["consumer_key"]    = application.api_key
           @twitter.options["consumer_secret"] = application.api_secret
         end
-        after  { database.drop }
+        after do
+          database.drop
+          Twimock::Config.port = 80
+        end
 
         let(:db_name)  { ".test" }
         let(:database) { Twimock::Database.new }
 
+        shared_examples "Redirect to twimock" do
         it 'should return mock 302 response' do
           status, header, body = @twitter.call(@env)
 
+          url = case Twimock::Config.port
+          when 443 then "https://#{Twimock::Config.host}"
+          when 80  then "http://#{Twimock::Config.host}"
+          else "http://#{Twimock::Config.host}:#{Twimock::Config.port}"
+          end
+          url = File.join(url, @twitter.options.client_options.authorize_path)
           oauth_token = Twimock::RequestToken.last
-          url = File.join("https://#{Twimock::Config.host}", @twitter.options.client_options.authorize_path)
           location = url + "?oauth_token=#{oauth_token.string}"
 
           expect(status).to eq 302
           expect(header["Location"]).to eq location
+        end
+        end
+
+        it_behaves_like "Redirect to twimock"
+
+        context 'and Twimock::Config.port set 80' do
+          before { Twimock::Config.port = 80 }
+          it_behaves_like "Redirect to twimock"
+        end
+
+        context 'and Twimock::Config.port set 443' do
+          before { Twimock::Config.port = 443 }
+          it_behaves_like "Redirect to twimock"
+        end
+
+        context 'and Twimock::Config.port set 3000' do
+          before { Twimock::Config.port = 3000 }
+          it_behaves_like "Redirect to twimock"
         end
       end
     end

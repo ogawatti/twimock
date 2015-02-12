@@ -49,19 +49,16 @@ describe Twimock::API::IntentSessions do
     end
   end
 
-  shared_context '302 Redircted OAuth Authorize', assert: :Authenticated do
-    it 'should return 302 Redirected /oauth/authorize' do
+  shared_context '302 Redircted Callback URL', assert: :Authenticated do
+    it 'should return 302 Redirected callback url' do
       post path, @body, header
       
       expect(last_response.status).to eq 302
       expect(last_response.header).not_to be_blank
       expect(last_response.header['Content-Length']).to eq last_response.body.bytesize.to_s
-      expect(last_response.header['Location']).not_to be_blank
-      location = URI.parse(last_response.header['Location'])
-      query = query_string_to_hash(location.query)
-      expect(location.path).to eq "/oauth/authorize"
-      expect(query).to be_has_key "oauth_token"
-      expect(query["oauth_token"]).to eq @body[:oauth_token]
+      query_string = "oauth_token=#{@request_token.string}&oauth_verifier=#{@request_token.verifier}"
+      location = Twimock::Config.callback_url + "?" + query_string
+      expect(last_response.header['Location']).to eq location
       expect(last_response.body).to be_blank
     end
   end
@@ -128,13 +125,13 @@ describe Twimock::API::IntentSessions do
       before do
         application   = Twimock::Application.new
         application.save!
-        request_token = Twimock::RequestToken.new(application_id: application.id)
-        request_token.save!
+        @request_token = Twimock::RequestToken.new(application_id: application.id)
+        @request_token.save!
         user          = Twimock::User.new(application_id: application.id)
         user.save!
         @body = { username_or_email: user.twitter_id,
                   password: user.password,
-                  oauth_token: request_token.string }
+                  oauth_token: @request_token.string }
       end
     end
 
@@ -142,13 +139,13 @@ describe Twimock::API::IntentSessions do
       before do
         application   = Twimock::Application.new
         application.save!
-        request_token = Twimock::RequestToken.new(application_id: application.id)
-        request_token.save!
+        @request_token = Twimock::RequestToken.new(application_id: application.id)
+        @request_token.save!
         user          = Twimock::User.new(application_id: application.id)
         user.save!
         @body = { username_or_email: user.email,
                   password: user.password,
-                  oauth_token: request_token.string }
+                  oauth_token: @request_token.string }
       end
     end
 
@@ -167,6 +164,26 @@ describe Twimock::API::IntentSessions do
         expect(last_response.header['Content-Length']).to eq last_response.body.bytesize.to_s
         expect(last_response.body).to be_blank
       end
+    end
+  end
+
+  describe "GET '/intent/sessions'" do
+    it 'should return 200 OK' do
+      get '/intent/sessions'
+
+      expect(last_response.status).to eq 200
+      expect(last_response.body).to be_blank
+      expect(last_response.header).to be_blank
+    end
+  end
+
+  describe "POST '/oauth/sessions'" do
+    it 'should return 200 OK' do
+      post '/oauth/sessions'
+
+      expect(last_response.status).to eq 200
+      expect(last_response.body).to be_blank
+      expect(last_response.header).to be_blank
     end
   end
 end

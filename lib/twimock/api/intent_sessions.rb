@@ -1,6 +1,7 @@
 require 'uri'
 require 'erb'
 require 'json'
+require 'addressable/uri'
 require 'twimock/errors'
 
 module Twimock
@@ -27,17 +28,17 @@ module Twimock
             elsif @password.blank? || @password != user.password
               raise Twimock::Errors::InvalidPassword.new 
             end
+            request_token = Twimock::RequestToken.find_by_string(@oauth_token)
 
             uri = Addressable::URI.new
-            uri.path = Twimock::API::OAuthAuthorize::PATH
-            uri.query_values = { oauth_token: @oauth_token,
-                                 remember_me: 1,
-                                 "session[username_or_email]" => @username_or_email }
+            uri.query_values = { oauth_token: request_token.string,
+                                 oauth_verifier: request_token.verifier }
+            callback_url = Twimock::Config.callback_url + "?" + uri.query
 
             status = 302
             body   = ""
             header = { "Content-Length" => body.bytesize,
-                       "Location" => uri.to_s }
+                       "Location" => callback_url }
             [ status, header, [ body ] ]
           rescue Twimock::Errors::InvalidUsernameOrEmail, Twimock::Errors::InvalidPassword => @error
             response = unauthorized

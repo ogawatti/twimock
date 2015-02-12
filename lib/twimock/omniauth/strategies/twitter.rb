@@ -10,8 +10,13 @@ module Twimock
 
           if status == 302 && location.host == "api.twitter.com"
             location.host   = Twimock::Config.host
-            location.port   = Twimock::Config.port
-            location.scheme = (location.port == 443) ? "https" : "http"
+            case Twimock::Config.port
+            when 443 then location.scheme = "https"
+            when 80  then location.scheme = "http"
+            else
+              location.scheme = "http"
+              location.port   = Twimock::Config.port
+            end
             header["Location"] = location.to_s
           end
 
