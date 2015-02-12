@@ -1,9 +1,5 @@
 require 'twimock/api/application'
-require 'twimock/api/oauth_access_token'
-require 'twimock/api/oauth_request_token'
-require 'twimock/api/oauth_authenticate'
-require 'twimock/api/intent_sessions'
-require 'twimock/api/account_verify_credentials'
+require 'twimock/api/oauth'
 require 'sham_rack'
 
 module Twimock
@@ -12,7 +8,7 @@ module Twimock
 
     HOSTNAME    = "api.twitter.com"
     PORT        = 443
-    MIDDLEWARES = [ OAuthAccessToken, OAuthRequestToken, AccountVerifyCredentials ]
+    MIDDLEWARES = [ OAuth::AccessToken, OAuth::RequestToken, Account::VerifyCredentials ]
 
     def on
       ShamRack.at(HOSTNAME, PORT){|env| app.call(env) } unless on?
