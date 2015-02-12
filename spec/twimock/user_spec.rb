@@ -7,14 +7,21 @@ describe Twimock::User do
   let(:table_name)     { :users }
   let(:column_names)   { [ :id,
                            :name,
+                           :twitter_id,
+                           :email,
                            :password,
                            :access_token,
                            :access_token_secret,
                            :application_id,
                            :created_at ] }
+  let(:info_keys)      { [ :id,
+                           :name,
+                           :created_at ] }
 
   let(:id)                  { 1 }
   let(:name)                { "test user" }
+  let(:twitter_id)          { "test_user" }
+  let(:email)               { "test@example.com" }
   let(:password)            { "testpass" }
   let(:access_token)        { "test_token" }
   let(:access_token_secret) { "test_token_secret" }
@@ -22,6 +29,8 @@ describe Twimock::User do
   let(:created_at)          { Time.now }
   let(:options)             { { id:                  id, 
                                 name:                name,
+                                twitter_id:          twitter_id,
+                                email:               email,
                                 password:            password,
                                 access_token:        access_token,
                                 access_token_secret: access_token_secret,
@@ -38,6 +47,11 @@ describe Twimock::User do
   describe '::COLUMN_NAMES' do
     subject { Twimock::User::COLUMN_NAMES }
     it { is_expected.to eq column_names }
+  end
+
+  describe '::INFO_KEYS' do
+    subject { Twimock::User::INFO_KEYS }
+    it { is_expected.to eq info_keys }
   end
 
   describe '#initialize' do
@@ -57,6 +71,28 @@ describe Twimock::User do
 
         describe '.size' do
           subject { Twimock::User.new.name.size }
+          it { is_expected.to be > 0 }
+        end
+      end
+
+      describe '.twitter_id' do
+        before { @user = Twimock::User.new }
+        subject { @user.twitter_id }
+        it { is_expected.to be_kind_of String }
+
+        describe '.size' do
+          subject { @user.twitter_id.size }
+          it { is_expected.to eq @user.name.size }
+        end
+      end
+
+      describe '.email' do
+        before { @user = Twimock::User.new }
+        subject { @user.email }
+        it { is_expected.to be_kind_of String }
+
+        describe '.size' do
+          subject { @user.email.size }
           it { is_expected.to be > 0 }
         end
       end
@@ -83,7 +119,7 @@ describe Twimock::User do
 
         describe '.size' do
           subject { Twimock::User.new.access_token.size }
-          it { is_expected.to eq 50 }
+          it { is_expected.to be <= 50 }
         end
       end
 
@@ -164,6 +200,18 @@ describe Twimock::User do
           end
         end
       end
+    end
+  end
+
+  describe '#info' do
+    let(:user) { Twimock::User.new }
+    let(:info) { user.info }
+    let(:info_keys) { [:id, :id_str, :name, :created_at] }
+
+    it 'should return user information' do
+      expect(info).to be_kind_of Hashie::Mash
+      Twimock::User::INFO_KEYS.each { |key| expect(info.send(key)).to eq user.send(key) }
+      expect(info.id_str).to eq user.id.to_s
     end
   end
 end
