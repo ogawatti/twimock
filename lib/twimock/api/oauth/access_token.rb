@@ -25,7 +25,7 @@ module Twimock
               raise unless request_token = Twimock::RequestToken.find_by_string(authorization.oauth_token)
               raise unless request_token.application_id == application.id
               raise unless user          = Twimock::User.find_by_id(request_token.user_id)
-            rescue
+            rescue => @error
               return unauthorized
             end
 

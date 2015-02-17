@@ -22,7 +22,7 @@ module Twimock
               end
               raise unless validate_authorization_header(authorization)
               raise unless application = Twimock::Application.find_by_api_key(authorization.oauth_consumer_key)
-            rescue
+            rescue => @error
               return unauthorized
             end
 

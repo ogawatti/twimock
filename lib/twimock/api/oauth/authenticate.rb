@@ -1,6 +1,5 @@
 require 'uri'
 require 'erb'
-require 'twimock/errors'
 
 module Twimock
   module API
@@ -29,8 +28,8 @@ module Twimock
               [ status, header, [ body ] ]
             rescue Twimock::Errors::InvalidRequestToken => @error
               unauthorized
-            rescue => e
-              return [ 500, {}, [""] ]
+            rescue => @error
+              internal_server_error
             end
           else
             super
@@ -45,15 +44,6 @@ module Twimock
         end
 
         private
-
-        def unauthorized
-          status = 401
-          error_code = @error.class.to_s.split("::").last
-          body   = { error: { code: error_code } }.to_json
-          header = { "Content-Type"   => "application/json; charset=utf-8",
-                     "Content-Length" => body.bytesize }
-          return [ status, header, [ body ] ]
-        end
 
         def validate_oauth_token(oauth_token)
           return false if oauth_token.blank?

@@ -47,7 +47,7 @@ module Twimock
               response[1].merge!( {"Location" => "/oauth/authenticate?oauth_token=#{@oauth_token}" })
               response
             rescue Twimock::Errors::InvalidRequestToken => @error
-              unauthorized
+              internal_server_error
             rescue
               return [ 500, {}, [""] ]
             end
@@ -57,15 +57,6 @@ module Twimock
         end
 
         private
-
-        def unauthorized
-          status = 401
-          error_code = @error.class.to_s.split("::").last
-          body   = { error: { code: error_code } }.to_json
-          header = { "Content-Type"   => "application/json; charset=utf-8",
-                     "Content-Length" => body.bytesize }
-          return [ status, header, [ body ] ]
-        end
 
         def query_string_to_hash(query_string)
           ary  = URI::decode_www_form(query_string)
