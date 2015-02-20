@@ -26,7 +26,7 @@ module Twimock
           end
           status = '200 OK'
           body = user.info.to_json
-          header = { "Content-Length" => body.bytesize }
+          header = { "Content-Length" => body.bytesize.to_s }
           [ status, header, [ body ] ]
         else
           super

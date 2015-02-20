@@ -36,7 +36,7 @@ module Twimock
             screen_name:        user.twitter_id
           }
           body   = params.inject([]){|a, (k, v)| a << "#{k}=#{v}"}.join('&')
-          header = { "Content-Length" => body.bytesize }
+          header = { "Content-Length" => body.bytesize.to_s }
 
           [ status, header, [ body ] ]
         else
