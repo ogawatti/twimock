@@ -24,7 +24,7 @@ module Twimock
 
             status = 200
             body   = OAuthAuthenticate.view(@oauth_token)
-            header = { "Content-Length" => body.bytesize }
+            header = { "Content-Length" => body.bytesize.to_s }
             [ status, header, [ body ] ]
           rescue Twimock::Errors::InvalidRequestToken => @error
             unauthorized
@@ -50,7 +50,7 @@ module Twimock
         error_code = @error.class.to_s.split("::").last
         body   = { error: { code: error_code } }.to_json
         header = { "Content-Type"   => "application/json; charset=utf-8",
-                   "Content-Length" => body.bytesize }
+                   "Content-Length" => body.bytesize.to_s }
         return [ status, header, [ body ] ]
       end
 
