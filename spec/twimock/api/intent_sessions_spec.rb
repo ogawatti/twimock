@@ -77,8 +77,8 @@ describe Twimock::API::IntentSessions do
     context 'with invalid oauth token', assert: :UnauthorizedRequestToken do
       before do
         request_token = Twimock::RequestToken.new
-        @body = { username_or_email: "testuser",
-                  password: "testpass",
+        @body = { 'session[username_or_email]' => "testuser",
+                  'session[password]' =>  "testpass",
                   oauth_token: request_token.string }
         post path, @body, header
       end
@@ -102,7 +102,7 @@ describe Twimock::API::IntentSessions do
         request_token.save!
         user          = Twimock::User.new(application_id: application.id, name: "testuser")
         user.save!
-        @body = { username_or_email: "invalidusername",
+        @body = { 'session[username_or_email]' => "invalidusername",
                   oauth_token: request_token.string }
       end
     end
@@ -115,8 +115,8 @@ describe Twimock::API::IntentSessions do
         request_token.save!
         user          = Twimock::User.new(application_id: application.id, password: "testpass")
         user.save!
-        @body = { username_or_email: user.twitter_id,
-                  password: "invalidpassword",
+        @body = { 'session[username_or_email]' => user.twitter_id,
+                  'session[password]' => "invalidpassword",
                   oauth_token: request_token.string }
       end
     end
@@ -129,8 +129,8 @@ describe Twimock::API::IntentSessions do
         @request_token.save!
         user          = Twimock::User.new(application_id: application.id)
         user.save!
-        @body = { username_or_email: user.twitter_id,
-                  password: user.password,
+        @body = { 'session[username_or_email]' => user.twitter_id,
+                  'session[password]' => user.password,
                   oauth_token: @request_token.string }
       end
     end
@@ -143,8 +143,8 @@ describe Twimock::API::IntentSessions do
         @request_token.save!
         user          = Twimock::User.new(application_id: application.id)
         user.save!
-        @body = { username_or_email: user.email,
-                  password: user.password,
+        @body = { 'session[username_or_email]' => user.email,
+                  'session[password]' => user.password,
                   oauth_token: @request_token.string }
       end
     end

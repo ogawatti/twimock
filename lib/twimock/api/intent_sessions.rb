@@ -7,7 +7,7 @@ require 'twimock/errors'
 module Twimock
   module API
     # POST https://twitter.com/intent/sessions
-    #   body: { username_or_email: "xxx", password: "xxx", oauth_token: "xxx" }
+    #   body: { 'session[username_or_email]' => "xxx", 'session[password]' => "xxx", oauth_token: "xxx" }
     class IntentSessions < OAuth
       METHOD = "POST"
       PATH   = "/intent/sessions"
@@ -18,8 +18,8 @@ module Twimock
             request = Rack::Request.new(env)
             body = query_string_to_hash(request.body.read)
             @oauth_token       = body.oauth_token
-            @username_or_email = body.username_or_email
-            @password          = body.password
+            @username_or_email = body["session[username_or_email]"]
+            @password          = body["session[password]"]
 
             if !validate_oauth_token(@oauth_token)
               raise Twimock::Errors::InvalidRequestToken.new
