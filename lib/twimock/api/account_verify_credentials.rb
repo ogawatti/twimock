@@ -13,7 +13,7 @@ module Twimock
       def call(env)
         if env["REQUEST_METHOD"] == METHOD && env["PATH_INFO"] == PATH
           begin
-            auth_header = env["authorization"]
+            auth_header = env["authorization"] || env["HTTP_AUTHORIZATION"]
             raise if auth_header.blank?
             authorization = parse_authorization_header(auth_header.first)
             raise unless validate_authorization_header(authorization)
