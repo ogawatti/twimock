@@ -3,6 +3,7 @@ require 'twimock/database/table'
 require 'twimock/request_token'
 
 module Twimock
+  # TODO: 要改善 AccessTokenをUserから分離
   class User < Database::Table
     TABLE_NAME = :users
     COLUMN_NAMES = [:id, :name, :twitter_id, :email, :password, :access_token, :access_token_secret, :application_id, :created_at]

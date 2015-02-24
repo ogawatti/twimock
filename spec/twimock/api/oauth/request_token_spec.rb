@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'rack/test'
 
-describe Twimock::API::OAuthRequestToken do
+describe Twimock::API::OAuth::RequestToken do
   include TestApplicationHelper
   include Rack::Test::Methods
 
@@ -11,32 +11,21 @@ describe Twimock::API::OAuthRequestToken do
   let(:body)     { "" }
   let(:header)   { {} }
   let(:test_app) { TestApplicationHelper::TestRackApplication.new }
-  let(:app)      { Twimock::API::OAuthRequestToken.new(test_app) }
+  let(:app)      { Twimock::API::OAuth::RequestToken.new(test_app) }
 
   describe '::METHOD' do
-    subject { Twimock::API::OAuthRequestToken::METHOD }
+    subject { Twimock::API::OAuth::RequestToken::METHOD }
     it { is_expected.to eq method }
   end
 
   describe '::PATH' do
-    subject { Twimock::API::OAuthRequestToken::PATH }
+    subject { Twimock::API::OAuth::RequestToken::PATH }
     it { is_expected.to eq path }
   end
 
   describe '::AUTHORIZATION_REGEXP' do
-    subject { Twimock::API::OAuthRequestToken::AUTHORIZATION_REGEXP }
+    subject { Twimock::API::OAuth::RequestToken::AUTHORIZATION_REGEXP }
     it { is_expected.to eq authorization_regexp }
-  end
-
-  shared_context '401 Unauthorizaed OAuth Request Token', assert: :UnauthorizedOAuthRequestToken do
-    it 'should return 401 Unauthorized' do
-      post path, body, header
-
-      expect(last_response.status).to eq 401
-      expect(last_response.header).not_to be_blank
-      expect(last_response.header['Content-Length']).to eq 0.to_s
-      expect(last_response.body).to be_blank
-    end
   end
 
   describe "POST '/oauth/request_token'" do
@@ -58,7 +47,6 @@ describe Twimock::API::OAuthRequestToken do
 
         it 'should return 200 OK' do
           post path, body, header
-
           expect(last_response.status).to eq 200
           expect(last_response.header).not_to be_blank
           expect(last_response.header['Content-Length']).to eq last_response.body.bytesize.to_s
@@ -77,20 +65,40 @@ describe Twimock::API::OAuthRequestToken do
         end
       end
 
-      context 'that is incorrect format', assert: :UnauthorizedOAuthRequestToken do
-        before { @authorization = ["OAuth consumer_key=\"test_consumer_key\""] }
+      context 'that is incorrect format' do
+        before do
+          @authorization = ["OAuth consumer_key=\"test_consumer_key\""]
+          post path, body, header
+        end
+        it_behaves_like "API 401 UnAuthorized"
       end
 
-      context 'but consumer_key is invalid', assert: :UnauthorizedOAuthRequestToken do
+      context 'but consumer_key is invalid' do
         before do
           app = Twimock::Application.new
           @authorization = ["OAuth oauth_callback=\"http%3A%2F%2Fhiddeste.local.jp%3A3456%2Fusers%2Fauth%2Ftwitter%2Fcallback\", oauth_consumer_key=\"#{app.api_key}\", oauth_nonce=\"gop2czKq1IebHEvEIo2qE64Hwp5SRWxLgilYAKqrWE\", oauth_signature=\"FVn4chN1TbLPDDsLb%2FqG%2FU99biA%3D\", oauth_signature_method=\"HMAC-SHA1\", oauth_timestamp=\"1422273831\", oauth_version=\"1.0\""]
+          post path, body, header
         end
+        it_behaves_like "API 401 UnAuthorized"
+      end
+
+      context 'raise error that is not catched' do
+        before do
+          allow(Twimock::Application).to receive(:find_by_api_key){ raise }
+          app = Twimock::Application.new
+          app.save!
+          @authorization = ["OAuth oauth_callback=\"http%3A%2F%2Fhiddeste.local.jp%3A3456%2Fusers%2Fauth%2Ftwitter%2Fcallback\", oauth_consumer_key=\"#{app.api_key}\", oauth_nonce=\"gop2czKq1IebHEvEIo2qE64Hwp5SRWxLgilYAKqrWE\", oauth_signature=\"FVn4chN1TbLPDDsLb%2FqG%2FU99biA%3D\", oauth_signature_method=\"HMAC-SHA1\", oauth_timestamp=\"1422273831\", oauth_version=\"1.0\""]
+          post path, body, header
+        end
+        it_behaves_like 'API 500 InternalServerError'
+      end
+
+      context 'without authorization header'do
+        before { post path, body, header }
+        it_behaves_like "API 401 UnAuthorized"
       end
     end
 
-    context 'without authorization header', assert: :UnauthorizedOAuthRequestToken do
-    end
   end
 
   describe "POST '/test'" do

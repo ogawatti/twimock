@@ -8,12 +8,13 @@ module Twimock
   module API
     # POST https://twitter.com/intent/sessions
     #   body: { 'session[username_or_email]' => "xxx", 'session[password]' => "xxx", oauth_token: "xxx" }
-    class IntentSessions < OAuth
-      METHOD = "POST"
-      PATH   = "/intent/sessions"
+    module Intent
+      class Sessions < OAuth
+        METHOD = "POST"
+        PATH   = "/intent/sessions"
 
-      def call(env)
-        if env["REQUEST_METHOD"] == METHOD && env["PATH_INFO"] == PATH
+        def call(env)
+          return super unless called?(env)
           begin
             request = Rack::Request.new(env)
             body = query_string_to_hash(request.body.read)
@@ -21,7 +22,7 @@ module Twimock
             @username_or_email = body["session[username_or_email]"]
             @password          = body["session[password]"]
 
-            if !validate_oauth_token(@oauth_token)
+            if !validate_request_token(@oauth_token)
               raise Twimock::Errors::InvalidRequestToken.new
             elsif !(user = Twimock::User.find_by_tiwtter_id_or_email(@username_or_email))
               raise Twimock::Errors::InvalidUsernameOrEmail.new 
@@ -46,37 +47,11 @@ module Twimock
             response[1].merge!( {"Location" => "/oauth/authenticate?oauth_token=#{@oauth_token}" })
             response
           rescue Twimock::Errors::InvalidRequestToken => @error
-            unauthorized
+            return unauthorized
           rescue
-            return [ 500, {}, [""] ]
+            internal_server_error
           end
-        else
-          super
         end
-      end
-
-      private
-
-      def unauthorized
-        status = 401
-        error_code = @error.class.to_s.split("::").last
-        body   = { error: { code: error_code } }.to_json
-        header = { "Content-Type"   => "application/json; charset=utf-8",
-                   "Content-Length" => body.bytesize.to_s }
-        return [ status, header, [ body ] ]
-      end
-
-      def query_string_to_hash(query_string)
-        ary  = URI::decode_www_form(query_string)
-        hash = Hash[ary]
-        Hashie::Mash.new(hash)
-      end
-
-      def validate_oauth_token(oauth_token)
-        return false if oauth_token.blank?
-        return false unless request_token = Twimock::RequestToken.find_by_string(oauth_token)
-        return false unless request_token.application_id
-        true
       end
     end
   end

@@ -3,9 +3,9 @@ require 'spec_helper'
 describe Twimock::API do
   let(:hostname)    { "api.twitter.com" }
   let(:port)        { 443 }
-  let(:middlewares) { [ Twimock::API::OAuthAccessToken, 
-                        Twimock::API::OAuthRequestToken, 
-                        Twimock::API::AccountVerifyCredentials ] }
+  let(:middlewares) { [ Twimock::API::OAuth::AccessToken, 
+                        Twimock::API::OAuth::RequestToken, 
+                        Twimock::API::Account::VerifyCredentials ] }
 
 
   describe '::HOSTNAME' do
