@@ -12,66 +12,47 @@ module Twimock
         AUTHORIZATION_REGEXP = /OAuth oauth_body_hash=\"(.*)\", oauth_consumer_key=\"(.*)\", oauth_nonce=\"(.*)\", oauth_signature=\"(.*)\", oauth_signature_method=\"(.*)\", oauth_timestamp=\"(.*)\", oauth_token=\"(.*)\", oauth_verifier=\"(.*)\", oauth_version=\"(.*)\"/
 
         def call(env)
-          if env["REQUEST_METHOD"] == METHOD && env["PATH_INFO"] == PATH
-            begin
-              auth_header = env["authorization"]
-              raise if auth_header.blank?
-              authorization = case auth_header
-              when Array  then parse_authorization_header(auth_header.first)
-              when String then parse_authorization_header(auth_header)
-              end
-              raise unless validate_authorization_header(authorization)
-              raise unless application   = Twimock::Application.find_by_api_key(authorization.oauth_consumer_key)
-              raise unless request_token = Twimock::RequestToken.find_by_string(authorization.oauth_token)
-              raise unless request_token.application_id == application.id
-              raise unless user          = Twimock::User.find_by_id(request_token.user_id)
-            rescue => @error
-              return unauthorized
+          return super unless called?(env)
+          begin
+            authorization_header = env["authorization"] || env["HTTP_AUTHORIZATION"]
+            oauth = parse_authorization_header(authorization_header)
+            consumer_key  = oauth.consumer_key
+            request_token = oauth.token
+
+            raise Twimock::Errors::InvalidConsumerKey.new if !validate_consumer_key(consumer_key)
+            application = Twimock::Application.find_by_api_key(consumer_key)
+            if !validate_request_token(request_token, application.id)
+              raise Twimock::Errors::InvalidRequestToken.new 
             end
-
-            status = "200 OK"
-            params = {
-              oauth_token:        user.access_token,
-              oauth_token_secret: user.access_token_secret,
-              user_id:            user.id,
-              screen_name:        user.twitter_id
-            }
-            body   = params.inject([]){|a, (k, v)| a << "#{k}=#{v}"}.join('&')
-            header = { "Content-Length" => body.bytesize }
-
-            [ status, header, [ body ] ]
-          else
-            super
+            request_token = Twimock::RequestToken.find_by_string(request_token)
+            user = Twimock::User.find_by_id(request_token.user_id)
+          rescue Twimock::Errors::InvalidConsumerKey, Twimock::Errors::InvalidRequestToken => @error
+            return unauthorized
+          rescue => @error
+            return internal_server_error
           end
+
+          status = "200 OK"
+          params = {
+            oauth_token:        user.access_token,
+            oauth_token_secret: user.access_token_secret,
+            user_id:            user.id,
+            screen_name:        user.twitter_id
+          }
+          body   = params.inject([]){|a, (k, v)| a << "#{k}=#{v}"}.join('&')
+          header = { "Content-Length" => body.bytesize }
+
+          [ status, header, [ body ] ]
         end
 
         private
 
-        def parse_authorization_header(auth_header)
-          raise unless auth_header =~ AUTHORIZATION_REGEXP
-          authorization = Hashie::Mash.new
-          authorization.oauth_body_hash        = $1
-          authorization.oauth_consumer_key     = $2
-          authorization.oauth_nonce            = $3
-          authorization.oauth_signature        = $4
-          authorization.oauth_signature_method = $5
-          authorization.oauth_timestamp        = $6
-          authorization.oauth_token            = $7
-          authorization.oauth_verifier         = $8
-          authorization.oauth_version          = $9
-          authorization
-        end
+        def validate_request_token(request_token, application_id)
+          return false unless super(request_token)
 
-        def validate_authorization_header(authorization)
-          return false unless authorization.oauth_body_hash.size > 0
-          return false unless authorization.oauth_consumer_key.size > 0
-          return false unless authorization.oauth_nonce.size > 0
-          return false unless authorization.oauth_signature.size > 0
-          return false unless authorization.oauth_signature_method == "HMAC-SHA1"
-          return false unless authorization.oauth_timestamp.to_i > 0
-          return false unless authorization.oauth_token.size > 0
-          return false unless authorization.oauth_verifier.size > 0
-          return false unless authorization.oauth_version == "1.0"
+          request_token = Twimock::RequestToken.find_by_string(request_token)
+          return false unless request_token.application_id == application_id
+          return false unless User.find_by_id(request_token.user_id)
           true
         end
       end

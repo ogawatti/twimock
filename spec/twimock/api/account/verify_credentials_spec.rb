@@ -38,24 +38,6 @@ describe Twimock::API::Account::VerifyCredentials do
     it { is_expected.to eq authorization_regexp }
   end
 
-=begin
-  # TODO
-  # api_spec_helper.rb へ移動 (共通化できたらやる)
-  shared_examples 'Account::VerifyCredentials 401 UnAuthorized' do
-    it 'should return 401 Unauthorized' do
-      get path, body, header
-
-      expect(last_response.status).to eq 401
-      expect(last_response.header).not_to be_blank
-      expect(last_response.header['Content-Length']).to eq last_response.body.bytesize.to_s
-      expect(last_response.header['Content-Type']).to eq "application/json; charset=utf-8"
-      expect(last_response.body).not_to be_blank
-      parsed_body = JSON.parse(last_response.body)
-      expect(parsed_body["error"]["code"]).to match /^Invalid.*/
-    end
-  end
-=end
-
   describe "GET '/1.1/account/verify_credentials.json'" do
     context 'with authorization header' do
       let(:db_name) { ".test" }
@@ -77,7 +59,7 @@ describe Twimock::API::Account::VerifyCredentials do
         end
 
         it 'should return 200 OK' do
-          get '/1.1/account/verify_credentials.json', body, header
+          get path, body, header
 
           expect(last_response.status).to eq 200
           expect(last_response.header).not_to be_blank
@@ -95,17 +77,37 @@ describe Twimock::API::Account::VerifyCredentials do
 
       context 'that is incorrect format' do
         let(:consumer_key) { "test_consumer_key" }
-        it_behaves_like 'Account::VerifyCredentials 401 UnAuthorized'
+        before { get path, body, header }
+        it_behaves_like 'API 401 UnAuthorized'
       end
 
       context 'but consumer_key is invalid' do
-        it_behaves_like 'Account::VerifyCredentials 401 UnAuthorized'
+        before { get path, body, header }
+        it_behaves_like 'API 401 UnAuthorized'
       end
     end
 
     context 'without authorization header', assert: :UnauthorizedAccountVerifyCredentials do
       let(:authorization_header) { nil }
-      it_behaves_like 'Account::VerifyCredentials 401 UnAuthorized'
+      before { get path, body, header }
+      it_behaves_like 'API 401 UnAuthorized'
+    end
+
+    context 'raise error that is not catched' do
+      let(:header) { { "authorization" => authorization_header } }
+      let(:oauth_consumer_key) { @application.api_key }
+      let(:oauth_token)        { @user.access_token }
+
+      before do 
+        @application = Twimock::Application.new
+        @application.save!
+        @user = Twimock::User.new(application_id: @application.id)
+        @user.save!
+        allow(Twimock::User).to receive(:find_by_access_token){ raise }
+        get path, body, header
+      end
+
+      it_behaves_like 'API 500 InternalServerError'
     end
   end
 

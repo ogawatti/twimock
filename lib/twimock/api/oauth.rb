@@ -18,6 +18,27 @@ module Twimock
 
       private
 
+      def validate_consumer_key(consumer_key)
+        return false if consumer_key.blank?
+        return false unless application = Twimock::Application.find_by_api_key(consumer_key)
+        true
+      end
+
+      def validate_request_token(request_token)
+        return false if request_token.blank?
+        return false unless request_token = Twimock::RequestToken.find_by_string(request_token)
+        return false unless request_token.application_id
+        true
+      end
+
+      def validate_access_token(access_token, application_id)
+        return false if access_token.blank?
+        return false unless user = Twimock::User.find_by_access_token(access_token)
+        return false unless user.application_id
+        return false unless user.application_id == application_id
+        true
+      end
+
       def called?(env)
         request = Rack::Request.new(env)
         request.request_method == self.class::METHOD && request.path == self.class::PATH
@@ -43,6 +64,12 @@ module Twimock
           oauth[key] = value
         end
         oauth
+      end
+
+      def query_string_to_hash(query_string)
+        ary  = URI::decode_www_form(query_string)
+        hash = Hash[ary]
+        Hashie::Mash.new(hash)
       end
 
       def generate_error_response(status)

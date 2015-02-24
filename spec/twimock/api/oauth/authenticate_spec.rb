@@ -30,16 +30,18 @@ describe Twimock::API::OAuth::Authenticate do
     let(:db_name)  { ".test" }
     let(:database) { Twimock::Database.new }
 
-    context 'without oauth token', assert: :UnauthorizedRequestToken do
+    context 'without oauth token' do
       before { get path, body, header }
+      it_behaves_like 'API 401 UnAuthorized'
     end
 
-    context 'with invalid oauth token', assert: :UnauthorizedRequestToken do
+    context 'with invalid oauth token' do
       before do
         request_token = Twimock::RequestToken.new
         query_string = "request_token=#{request_token.string}"
         get path + "?" + query_string , body, header
       end
+      it_behaves_like 'API 401 UnAuthorized'
     end
 
     context 'with valid oauth token' do
@@ -49,11 +51,10 @@ describe Twimock::API::OAuth::Authenticate do
         @request_token = Twimock::RequestToken.new(application_id: application.id)
         @request_token.save!
         @path = path + "?oauth_token=#{@request_token.string}"
+        get @path, body, header
       end
 
       it 'should return 200 OK' do
-        get @path, body, header
-          
         view = Twimock::API::OAuth::Authenticate.view(@request_token.string)
         expect(last_response.status).to eq 200
         expect(last_response.header).not_to be_blank
@@ -65,36 +66,31 @@ describe Twimock::API::OAuth::Authenticate do
     end
 
     context 'raise error that is not catched' do
-      before { allow_any_instance_of(Rack::Request).to receive(:params) { lambda { raise } } }
-
-      it 'should return 500' do
-        get path, body, header
-
-        expect(last_response.status).to eq 500
-        expect(last_response.header).not_to be_blank
-        expect(last_response.header['Content-Length']).to eq last_response.body.bytesize.to_s
-        expect(last_response.body).to be_blank
+      before do
+        allow(Twimock::API::OAuth::Authenticate).to receive(:view){ raise }
+        application = Twimock::Application.new
+        application.save!
+        @request_token = Twimock::RequestToken.new(application_id: application.id)
+        @request_token.save!
+        @path = path + "?oauth_token=#{@request_token.string}"
+        get @path, body, header
       end
+      it_behaves_like 'API 500 InternalServerError'
     end
+  end
+
+  describe "GET '/test'" do
+    before { get '/test' }
+    it_behaves_like 'TestRackApplication 200 OK'
   end
 
   describe "POST '/oauth/authenticate'" do
-    it 'should return 200 OK' do
-      post '/oauth/authenticate'
-
-      expect(last_response.status).to eq 200
-      expect(last_response.body).to be_blank
-      expect(last_response.header).to be_blank
-    end
+    before { post '/oauth/authenticate' }
+    it_behaves_like 'TestRackApplication 200 OK'
   end
 
   describe "GET '/oauth/authentication'" do
-    it 'should return 200 OK' do
-      get '/oauth/authentication'
-
-      expect(last_response.status).to eq 200
-      expect(last_response.body).to be_blank
-      expect(last_response.header).to be_blank
-    end
+    before { get '/oauth/authentication' }
+    it_behaves_like 'TestRackApplication 200 OK'
   end
 end

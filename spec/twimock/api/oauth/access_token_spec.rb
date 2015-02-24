@@ -43,14 +43,27 @@ describe Twimock::API::OAuth::AccessToken do
     it { is_expected.to eq authorization_regexp }
   end
 
-  shared_context '401 Unauthorizaed OAuth Access Token', assert: :UnauthorizedOAuthAccessToken do
-    it 'should return 401 Unauthorized' do
+  shared_examples "Get Access Token" do
+    it 'should return 200 Created' do
       post path, body, header
 
-      expect(last_response.status).to eq 401
+      expect(last_response.status).to eq 200
       expect(last_response.header).not_to be_blank
-      expect(last_response.header['Content-Length']).to eq 0.to_s
-      expect(last_response.body).to be_blank
+      expect(last_response.header['Content-Length']).to eq last_response.body.bytesize.to_s
+      expect(last_response.body).not_to be_blank
+      
+      index = last_response.body =~ /^oauth_token=(.*)&oauth_token_secret=(.*)&user_id=(.*)&screen_name=(.*)$/
+      expect(index).to eq 0
+      oauth_token        = $1
+      oauth_token_secret = $2
+      user_id            = $3.to_i
+      screen_name        = $4
+      
+      user = Twimock::User.find_by_access_token(oauth_token)
+      expect(user).not_to be_nil
+      expect(oauth_token_secret).to eq user.access_token_secret
+      expect(user_id).to eq user.id
+      expect(screen_name).to eq user.twitter_id
     end
   end
 
@@ -65,31 +78,6 @@ describe Twimock::API::OAuth::AccessToken do
       let(:header) { { "authorization" => @authorization } }
 
       context 'that is correct' do
-
-        shared_examples "Get Access Token" do
-          it 'should return 200 Created' do
-            post path, body, header
-
-            expect(last_response.status).to eq 200
-            expect(last_response.header).not_to be_blank
-            expect(last_response.header['Content-Length']).to eq last_response.body.bytesize.to_s
-            expect(last_response.body).not_to be_blank
-
-            index = last_response.body =~ /^oauth_token=(.*)&oauth_token_secret=(.*)&user_id=(.*)&screen_name=(.*)$/
-            expect(index).to eq 0
-            oauth_token        = $1
-            oauth_token_secret = $2
-            user_id            = $3.to_i
-            screen_name        = $4
-
-            user = Twimock::User.find_by_access_token(oauth_token)
-            expect(user).not_to be_nil
-            expect(oauth_token_secret).to eq user.access_token_secret
-            expect(user_id).to eq user.id
-            expect(screen_name).to eq user.twitter_id
-          end
-        end
-
         before do
           app = Twimock::Application.new
           app.save!
@@ -113,40 +101,58 @@ describe Twimock::API::OAuth::AccessToken do
           end
           it_behaves_like "Get Access Token"
         end
+
+        context 'raise error that is not catched' do
+          before do
+            allow(Twimock::RequestToken).to receive(:find_by_string){ raise }
+            post path, body, header
+          end
+          it_behaves_like 'API 500 InternalServerError'
+        end
       end
 
-      context 'that is incorrect format', assert: :UnauthorizedOAuthAccessToken do
-        before { @authorization = ["OAuth consumer_key=\"test_consumer_key\, oauth_token=\"test_token\""] }
+      context 'that is incorrect format' do
+        before do
+          @authorization = ["OAuth consumer_key=\"test_consumer_key\, oauth_token=\"test_token\""]
+          post path, body, header
+        end
+        it_behaves_like "API 401 UnAuthorized"
       end
 
-      context 'but consumer_key is invalid', assert: :UnauthorizedOAuthAccessToken do
+      context 'but consumer_key is invalid' do
         before do
           app = Twimock::Application.new
           request_token = Twimock::RequestToken.new(application_id: app.id)
           @authorization = create_authorization_header(app.api_key, request_token.string)
+          post path, body, header
         end
+        it_behaves_like "API 401 UnAuthorized"
       end
 
-      context 'but oauth_token is invalid', assert: :UnauthorizedOAuthAccessToken do
+      context 'but oauth_token is invalid' do
         before do
           app = Twimock::Application.new
           app.save!
           request_token = Twimock::RequestToken.new(application_id: app.id)
           @authorization = create_authorization_header(app.api_key, request_token.string)
+          post path, body, header
         end
+        it_behaves_like "API 401 UnAuthorized"
       end
 
-      context 'but oauth_token does not belong to user', assert: :UnauthorizedOAuthAccessToken do
+      context 'but oauth_token does not belong to user' do
         before do
           app = Twimock::Application.new
           app.save!
           request_token = Twimock::RequestToken.new(application_id: app.id)
           request_token.save!
           @authorization = create_authorization_header(app.api_key, request_token.string)
+          post path, body, header
         end
+        it_behaves_like "API 401 UnAuthorized"
       end
 
-      context 'but oauth_token does not belong to application', assert: :UnauthorizedOAuthAccessToken do
+      context 'but oauth_token does not belong to application' do
         before do
           app = Twimock::Application.new
           app.save!
@@ -155,31 +161,25 @@ describe Twimock::API::OAuth::AccessToken do
           request_token = Twimock::RequestToken.new(application_id: app.id)
           request_token.save!
           @authorization = create_authorization_header(app.api_key, request_token.string)
+          post path, body, header
         end
+        it_behaves_like "API 401 UnAuthorized"
       end
-    end
 
-    context 'without authorization header', assert: :UnauthorizedOAuthAccessToken do
+      context 'without authorization header' do
+        before { post path, body, header }
+        it_behaves_like "API 401 UnAuthorized"
+      end
     end
   end
 
-  describe "POST '/test'" do
-    it 'should return 200 OK' do
-      post '/test'
-
-      expect(last_response.status).to eq 200
-      expect(last_response.body).to be_blank
-      expect(last_response.header).to be_blank
-    end
+  describe "GET '/test'" do
+    before { post '/test' }
+    it_behaves_like 'TestRackApplication 200 OK'
   end
 
   describe "GET '/oauth/access_token'" do
-    it 'should return 200 OK' do
-      get '/oauth/access_token'
-
-      expect(last_response.status).to eq 200
-      expect(last_response.body).to be_blank
-      expect(last_response.header).to be_blank
-    end
+    before { get '/oauth/access_token' }
+    it_behaves_like 'TestRackApplication 200 OK'
   end
 end

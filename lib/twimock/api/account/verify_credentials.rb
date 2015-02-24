@@ -15,7 +15,8 @@ module Twimock
           return super unless called?(env)
 
           begin
-            oauth = parse_authorization_header(env["authorization"])
+            authorization_header = env["authorization"] || env["HTTP_AUTHORIZATION"]
+            oauth = parse_authorization_header(authorization_header)
             access_token = oauth.token
             consumer_key = oauth.consumer_key
 
@@ -33,22 +34,6 @@ module Twimock
           body = user.info.to_json
           header = { "Content-Length" => body.bytesize }
           [ status, header, [ body ] ]
-        end
-
-        private
-
-        def validate_access_token(access_token, application_id)
-          return false if access_token.blank?
-          return false unless user = Twimock::User.find_by_access_token(access_token)
-          return false unless user.application_id
-          return false unless user.application_id == application_id
-          true
-        end
-
-        def validate_consumer_key(consumer_key)
-          return false if consumer_key.blank?
-          return false unless application = Twimock::Application.find_by_api_key(consumer_key)
-          true
         end
       end
     end

@@ -94,7 +94,7 @@ describe Twimock::Config do
         it { is_expected.to raise_error Errno::ENOENT }
       end
 
-      shared_context 'app and user should not be created', assert: :incorrect_data_format do
+      shared_examples 'IncorrectDataFormat' do
         it 'app and user should not be created' do
           is_expected.to raise_error Twimock::Errors::IncorrectDataFormat
           expect(Twimock::Application.all).to be_empty
@@ -103,19 +103,24 @@ describe Twimock::Config do
       end
 
       context 'but incorrect format' do
-        context 'when load data is not array', assert: :incorrect_data_format do
+        context 'when load data is not array' do
           let(:yaml_load_data) { "" }
+          it_behaves_like 'IncorrectDataFormat'
         end
 
         [:id, :api_key, :api_secret, :users].each do |key|
-          context "when #{key} is not exist", assert: :incorrect_data_format do
+          context "when #{key} is not exist" do
             before { app.delete(key) }
+            it_behaves_like 'IncorrectDataFormat'
           end
         end
 
         [:id, :name, :password, :access_token, :access_token_secret, :application_id].each do |key|
-          context "when users #{key} is not exist", assert: :incorrect_data_format do
-            before { app[:users].first.delete(key) }
+          context "when users #{key} is not exist" do
+            before do
+              app[:users].first.delete(key)
+              it_behaves_like 'IncorrectDataFormat'
+            end
           end
         end
       end

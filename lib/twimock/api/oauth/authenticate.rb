@@ -13,26 +13,23 @@ module Twimock
         VIEW_FILE_NAME = "authenticate.html.erb"
 
         def call(env)
-          if env["REQUEST_METHOD"] == METHOD && env["PATH_INFO"] == PATH
-            begin
-              request = Rack::Request.new(env)
-              @oauth_token = request.params["oauth_token"]
+          return super unless called?(env)
+          begin
+            request = Rack::Request.new(env)
+            @oauth_token = request.params["oauth_token"]
 
-              if !validate_oauth_token(@oauth_token)
-                raise Twimock::Errors::InvalidRequestToken.new
-              end
-
-              status = 200
-              body   = Twimock::API::OAuth::Authenticate.view(@oauth_token)
-              header = { "Content-Length" => body.bytesize }
-              [ status, header, [ body ] ]
-            rescue Twimock::Errors::InvalidRequestToken => @error
-              unauthorized
-            rescue => @error
-              internal_server_error
+            if !validate_request_token(@oauth_token)
+              raise Twimock::Errors::InvalidRequestToken.new
             end
-          else
-            super
+
+            status = 200
+            body   = Twimock::API::OAuth::Authenticate.view(@oauth_token)
+            header = { "Content-Length" => body.bytesize }
+            [ status, header, [ body ] ]
+          rescue Twimock::Errors::InvalidRequestToken => @error
+            unauthorized
+          rescue => @error
+            internal_server_error
           end
         end
 
@@ -44,13 +41,6 @@ module Twimock
         end
 
         private
-
-        def validate_oauth_token(oauth_token)
-          return false if oauth_token.blank?
-          return false unless request_token = Twimock::RequestToken.find_by_string(oauth_token)
-          return false unless request_token.application_id
-          true
-        end
 
         def self.filepath
           File.join(VIEW_DIRECTORY, VIEW_FILE_NAME)

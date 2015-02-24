@@ -43,21 +43,21 @@ describe Twimock::OmniAuthTwitter do
         let(:database) { Twimock::Database.new }
 
         shared_examples "Redirect to twimock" do
-        it 'should return mock 302 response' do
-          status, header, body = @twitter.call(@env)
+          it 'should return mock 302 response' do
+            status, header, body = @twitter.call(@env)
 
-          url = case Twimock::Config.port
-          when 443 then "https://#{Twimock::Config.host}"
-          when 80  then "http://#{Twimock::Config.host}"
-          else "http://#{Twimock::Config.host}:#{Twimock::Config.port}"
+            url = case Twimock::Config.port
+            when 443 then "https://#{Twimock::Config.host}"
+            when 80  then "http://#{Twimock::Config.host}"
+            else "http://#{Twimock::Config.host}:#{Twimock::Config.port}"
+            end
+            url = File.join(url, @twitter.options.client_options.authorize_path)
+            oauth_token = Twimock::RequestToken.last
+            location = url + "?oauth_token=#{oauth_token.string}"
+
+            expect(status).to eq 302
+            expect(header["Location"]).to eq location
           end
-          url = File.join(url, @twitter.options.client_options.authorize_path)
-          oauth_token = Twimock::RequestToken.last
-          location = url + "?oauth_token=#{oauth_token.string}"
-
-          expect(status).to eq 302
-          expect(header["Location"]).to eq location
-        end
         end
 
         it_behaves_like "Redirect to twimock"

@@ -29,10 +29,8 @@ describe Twimock::API::Intent::Sessions do
     it { is_expected.to eq path }
   end
 
-  shared_context '302 Redirected OAuth Authenticate', assert: :InvalidInputData do
+  shared_examples 'API 302 InvalidInputData' do
     it 'should return 302 Redirected /oauth/authenticate' do
-      post path, @body, header
-
       expect(last_response.status).to eq 302
       expect(last_response.header).not_to be_blank
       expect(last_response.header['Content-Length']).to eq last_response.body.bytesize.to_s
@@ -49,7 +47,7 @@ describe Twimock::API::Intent::Sessions do
     end
   end
 
-  shared_context '302 Redircted Callback URL', assert: :Authenticated do
+  shared_examples 'API 302 Redircted Callback URL' do
     it 'should return 302 Redirected callback url' do
       post path, @body, header
       
@@ -70,11 +68,12 @@ describe Twimock::API::Intent::Sessions do
     let(:db_name)  { ".test" }
     let(:database) { Twimock::Database.new }
 
-    context 'without oauth token', assert: :UnauthorizedRequestToken do
+    context 'without oauth token' do
       before { post path, body, header }
+      it_behaves_like 'API 401 UnAuthorized'
     end
 
-    context 'with invalid oauth token', assert: :UnauthorizedRequestToken do
+    context 'with invalid oauth token' do
       before do
         request_token = Twimock::RequestToken.new
         @body = { username_or_email: "testuser",
@@ -82,19 +81,22 @@ describe Twimock::API::Intent::Sessions do
                   oauth_token: request_token.string }
         post path, @body, header
       end
+      it_behaves_like 'API 401 UnAuthorized'
     end
 
-    context 'with only valid oauth token', assert: :InvalidUsernameOrEmail do
+    context 'with only valid oauth token' do
       before do
         application   = Twimock::Application.new
         application.save!
         request_token = Twimock::RequestToken.new(application_id: application.id)
         request_token.save!
         @body = { oauth_token: request_token.string }
+        post path, @body, header
       end
+      it_behaves_like 'API 302 InvalidInputData'
     end
 
-    context 'with only valid oauth token and invalid username', assert: :InvalidInputData do
+    context 'with only valid oauth token and invalid username' do
       before do
         application   = Twimock::Application.new
         application.save!
@@ -104,10 +106,12 @@ describe Twimock::API::Intent::Sessions do
         user.save!
         @body = { username_or_email: "invalidusername",
                   oauth_token: request_token.string }
+        post path, @body, header
       end
+      it_behaves_like 'API 302 InvalidInputData'
     end
 
-    context 'with valid oauth token and username and invalid password', assert: :InvalidInputData do
+    context 'with valid oauth token and username and invalid password' do
       before do
         application   = Twimock::Application.new
         application.save!
@@ -118,10 +122,12 @@ describe Twimock::API::Intent::Sessions do
         @body = { username_or_email: user.twitter_id,
                   password: "invalidpassword",
                   oauth_token: request_token.string }
+        post path, @body, header
       end
+      it_behaves_like 'API 302 InvalidInputData'
     end
 
-    context 'with valid oauth token and username and password', assert: :Authenticated do
+    context 'with valid oauth token and username and password' do
       before do
         application   = Twimock::Application.new
         application.save!
@@ -132,10 +138,12 @@ describe Twimock::API::Intent::Sessions do
         @body = { username_or_email: user.twitter_id,
                   password: user.password,
                   oauth_token: @request_token.string }
+        post path, @body, header
       end
+      it_behaves_like 'API 302 Redircted Callback URL'
     end
 
-    context 'with valid oauth token and email and password', assert: :Authenticated do
+    context 'with valid oauth token and email and password' do
       before do
         application   = Twimock::Application.new
         application.save!
@@ -146,7 +154,9 @@ describe Twimock::API::Intent::Sessions do
         @body = { username_or_email: user.email,
                   password: user.password,
                   oauth_token: @request_token.string }
+        post path, @body, header
       end
+      it_behaves_like 'API 302 Redircted Callback URL'
     end
 
     context 'raise error that is not catched' do
@@ -154,36 +164,19 @@ describe Twimock::API::Intent::Sessions do
         allow_any_instance_of(Twimock::API::Intent::Sessions).to receive(:query_string_to_hash) do
           lambda { raise }
         end
-      end
-
-      it 'should return 500' do
         post path, @body, header
-
-        expect(last_response.status).to eq 500
-        expect(last_response.header).not_to be_blank
-        expect(last_response.header['Content-Length']).to eq last_response.body.bytesize.to_s
-        expect(last_response.body).to be_blank
       end
+      it_behaves_like 'API 500 InternalServerError'
     end
   end
 
   describe "GET '/intent/sessions'" do
-    it 'should return 200 OK' do
-      get '/intent/sessions'
-
-      expect(last_response.status).to eq 200
-      expect(last_response.body).to be_blank
-      expect(last_response.header).to be_blank
-    end
+    before { get '/intent/sessions' }
+    it_behaves_like 'TestRackApplication 200 OK'
   end
 
   describe "POST '/oauth/sessions'" do
-    it 'should return 200 OK' do
-      post '/oauth/sessions'
-
-      expect(last_response.status).to eq 200
-      expect(last_response.body).to be_blank
-      expect(last_response.header).to be_blank
-    end
+    before { post '/oauth/sessions' }
+    it_behaves_like 'TestRackApplication 200 OK'
   end
 end
