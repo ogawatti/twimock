@@ -67,6 +67,8 @@ module Twimock
       end
 
       def query_string_to_hash(query_string)
+        # 結合すると以下のエラーが出る
+        # NameError: uninitialized constant URI::WFKV_
         ary  = URI::decode_www_form(query_string)
         hash = Hash[ary]
         Hashie::Mash.new(hash)
