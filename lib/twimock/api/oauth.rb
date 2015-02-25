@@ -67,9 +67,8 @@ module Twimock
       end
 
       def query_string_to_hash(query_string)
-        ary  = URI::decode_www_form(query_string)
-        hash = Hash[ary]
-        Hashie::Mash.new(hash)
+        ary = URI.decode(query_string).split("&").inject([]){|a, s| a << s.split("=")}
+        Hashie::Mash.new(Hash[ary])
       end
 
       def generate_error_response(status)
