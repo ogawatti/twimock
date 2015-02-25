@@ -48,7 +48,7 @@ module Twimock
             response
           rescue Twimock::Errors::InvalidRequestToken => @error
             return unauthorized
-          rescue
+          rescue => @error
             internal_server_error
           end
         end
