@@ -58,6 +58,8 @@ describe Twimock::API::Intent::Sessions do
       location = Twimock::Config.callback_url + "?" + query_string
       expect(last_response.header['Location']).to eq location
       expect(last_response.body).to be_blank
+      user_id = Twimock::RequestToken.find_by_string(@body[:oauth_token]).user_id
+      expect(user_id).to eq Twimock::User.first.id
     end
   end
 

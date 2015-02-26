@@ -30,6 +30,8 @@ module Twimock
               raise Twimock::Errors::InvalidPassword.new 
             end
             request_token = Twimock::RequestToken.find_by_string(@oauth_token)
+            request_token.user_id = user.id
+            request_token.save!
 
             uri = Addressable::URI.new
             uri.query_values = { oauth_token: request_token.string,
