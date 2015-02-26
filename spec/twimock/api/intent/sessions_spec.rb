@@ -59,7 +59,7 @@ describe Twimock::API::Intent::Sessions do
       expect(last_response.header['Location']).to eq location
       expect(last_response.body).to be_blank
       user_id = Twimock::RequestToken.find_by_string(@body[:oauth_token]).user_id
-      expect(user_id).to eq Twimock::User.first.id
+      expect(user_id).to eq @user.id
     end
   end
 
@@ -135,10 +135,10 @@ describe Twimock::API::Intent::Sessions do
         application.save!
         @request_token = Twimock::RequestToken.new(application_id: application.id)
         @request_token.save!
-        user          = Twimock::User.new(application_id: application.id)
-        user.save!
-        @body = { 'session[username_or_email]' => user.twitter_id,
-                  'session[password]' => user.password,
+        @user          = Twimock::User.new(application_id: application.id)
+        @user.save!
+        @body = { 'session[username_or_email]' => @user.twitter_id,
+                  'session[password]' => @user.password,
                   oauth_token: @request_token.string }
         post path, @body, header
       end
@@ -151,10 +151,10 @@ describe Twimock::API::Intent::Sessions do
         application.save!
         @request_token = Twimock::RequestToken.new(application_id: application.id)
         @request_token.save!
-        user          = Twimock::User.new(application_id: application.id)
-        user.save!
-        @body = { 'session[username_or_email]' => user.email,
-                  'session[password]' => user.password,
+        @user          = Twimock::User.new(application_id: application.id)
+        @user.save!
+        @body = { 'session[username_or_email]' => @user.email,
+                  'session[password]' => @user.password,
                   oauth_token: @request_token.string }
         post path, @body, header
       end
