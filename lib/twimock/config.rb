@@ -50,10 +50,12 @@ module Twimock
         end
 
         # Create application and user record
-        app = Twimock::Application.create!({ id: app_id, api_key: api_key, api_secret: api_secret })
+        unless app = Twimock::Application.find_by_api_key(api_key)
+          app = Twimock::Application.create!({ id: app_id, api_key: api_key, api_secret: api_secret })
+        end
         users.each do |options|
           user = Twimock::User.new(options)
-          unless Twimock::User.find_by_id(user.id)
+          unless Twimock::User.find_by_name(user.name)
             user.application_id = app.id
             user.save!
           end
