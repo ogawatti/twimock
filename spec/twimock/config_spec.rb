@@ -160,7 +160,7 @@ def app_data(user_count = 1)
   users = []
   user_count.times do
     user = { id: Faker::Number.number(15),
-             name: 'test_user',
+             name: Faker::Name.first_name,
              password: 'test_pass',
              access_token: 'test_token',
              access_token_secret: "test_token_secret_#{Faker::Number.number(15)}",
@@ -168,7 +168,7 @@ def app_data(user_count = 1)
     users.push user
   end
   app = { id: app_id,
-          api_key: 'test_api_key',
+          api_key: "test_api_key_#{app_id}",
           api_secret: "test_api_secret_#{app_id}",
           users: users }
 end
