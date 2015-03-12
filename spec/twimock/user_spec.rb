@@ -214,4 +214,110 @@ describe Twimock::User do
       expect(info.id_str).to eq user.id.to_s
     end
   end
+
+  describe '#generate_access_token' do
+    before do
+      stub_const("Twimock::Database::DEFAULT_DB_NAME", db_name)
+      @database = Twimock::Database.new
+    end
+    after { @database.drop }
+
+    context 'without application_id' do
+      context 'when user does not save yet' do
+        before do 
+          @user = Twimock::User.new
+          @access_token = @user.generate_access_token
+        end
+
+        it 'should return not saved Twimock::AccessToken instance' do
+          expect(@access_token).to be_instance_of Twimock::AccessToken
+          expect(@access_token.persisted?).to eq false
+          expect(@access_token.id).to be_nil
+          expect(@access_token.user_id).to be_nil
+          expect(@access_token.application_id).to be_nil
+          expect(@access_token.string).not_to be_nil
+          expect(@access_token.string.size).to eq 50
+          expect(@access_token.secret).not_to be_nil
+          expect(@access_token.secret.size).to eq 45
+        end
+      end
+
+      context 'when user has saved' do
+        before do 
+          @user = Twimock::User.new
+          @user.application_id = 1
+          @user.save!
+          @access_token = @user.generate_access_token
+        end
+
+        it 'should return saved Twimock::AccessToken instance' do
+          expect(@access_token).to be_instance_of Twimock::AccessToken
+          expect(@access_token.persisted?).to eq true
+          expect(@access_token.id).not_to be_nil
+          expect(@access_token.user_id).to eq @user.id
+          expect(@access_token.application_id).to be_nil
+          expect(@access_token.string).not_to be_nil
+          expect(@access_token.string.size).to eq 50
+          expect(@access_token.secret).not_to be_nil
+          expect(@access_token.secret.size).to eq 45
+        end
+      end
+    end
+
+    context 'with application_id' do
+      context 'when specified application does not exist' do
+        let(:user) { Twimock::User.new }
+        let(:application_id) { 100000 }
+        subject { lambda { user.generate_access_token(application_id) } }
+        it { is_expected.to raise_error Twimock::Errors::ApplicationNotFound }
+      end
+
+      context 'when specified application exist' do
+        before do
+          @application = Twimock::Application.new
+          @application.save!
+        end
+
+        context 'and user does not saved' do
+          before do 
+            @user = Twimock::User.new
+            @access_token = @user.generate_access_token(@application.id)
+          end
+
+          it 'should return not saved Twimock::AccessToken instance' do
+            expect(@access_token).to be_instance_of Twimock::AccessToken
+            expect(@access_token.persisted?).to eq false
+            expect(@access_token.id).to be_nil
+            expect(@access_token.user_id).to be_nil
+            expect(@access_token.application_id).to eq @application.id
+            expect(@access_token.string).not_to be_nil
+            expect(@access_token.string.size).to eq 50
+            expect(@access_token.secret).not_to be_nil
+            expect(@access_token.secret.size).to eq 45
+          end
+        end
+
+        context 'and user has saved' do
+          before do 
+            @user = Twimock::User.new
+            @user.application_id = @application.id
+            @user.save!
+            @access_token = @user.generate_access_token(@application.id)
+          end
+
+          it 'should return saved Twimock::AccessToken instance' do
+            expect(@access_token).to be_instance_of Twimock::AccessToken
+            expect(@access_token.persisted?).to eq true
+            expect(@access_token.id).not_to be_nil
+            expect(@access_token.user_id).to eq @user.id
+            expect(@access_token.application_id).to eq @application.id
+            expect(@access_token.string).not_to be_nil
+            expect(@access_token.string.size).to eq 50
+            expect(@access_token.secret).not_to be_nil
+            expect(@access_token.secret.size).to eq 45
+          end
+        end
+      end
+    end
+  end
 end

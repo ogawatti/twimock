@@ -1,5 +1,6 @@
 require 'faker'
 require 'twimock/database/table'
+require 'twimock/access_token'
 require 'twimock/request_token'
 
 module Twimock
@@ -7,7 +8,7 @@ module Twimock
   class User < Database::Table
     TABLE_NAME = :users
     COLUMN_NAMES = [:id, :name, :twitter_id, :email, :password, :access_token, :access_token_secret, :application_id, :created_at]
-    CHILDREN = [ RequestToken ]
+    CHILDREN = [ AccessToken, RequestToken ]
     INFO_KEYS = [:id, :name, :created_at]
 
     def initialize(options={})
@@ -30,6 +31,21 @@ module Twimock
       INFO_KEYS.each { |key| info_hash[key] = self.instance_variable_get("@#{key}") }
       info_hash.id_str = info_hash.id.to_s
       info_hash
+    end
+
+    def generate_access_token(application_id=nil)
+      if application_id
+        application = Twimock::Application.find_by_id(application_id)
+        raise Twimock::Errors::ApplicationNotFound unless application
+      end
+
+      options = { application_id: application_id }
+      access_token = Twimock::AccessToken.new(options)
+      if self.persisted?
+        access_token.user_id = self.id
+        access_token.save!
+      end
+      access_token
     end
 
     def self.find_by_tiwtter_id_or_email(value)

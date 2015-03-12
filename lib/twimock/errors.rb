@@ -8,5 +8,6 @@ module Twimock
     class InvalidAccessToken < Error; end
     class InvalidUsernameOrEmail < Error; end
     class InvalidPassword < Error; end
+    class ApplicationNotFound < Error; end
   end
 end
