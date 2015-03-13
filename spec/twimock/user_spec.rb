@@ -10,21 +10,16 @@ describe Twimock::User do
                            :twitter_id,
                            :email,
                            :password,
-                           :access_token,
-                           :access_token_secret,
                            :application_id,
                            :created_at ] }
-  let(:info_keys)      { [ :id,
-                           :name,
-                           :created_at ] }
+  let(:children)       { [ Twimock::AccessToken, Twimock::RequestToken ] }
+  let(:info_keys)      { [ :id, :name, :created_at ] }
 
   let(:id)                  { 1 }
   let(:name)                { "test user" }
   let(:twitter_id)          { "test_user" }
   let(:email)               { "test@example.com" }
   let(:password)            { "testpass" }
-  let(:access_token)        { "test_token" }
-  let(:access_token_secret) { "test_token_secret" }
   let(:application_id)      { 1 }
   let(:created_at)          { Time.now }
   let(:options)             { { id:                  id, 
@@ -32,8 +27,6 @@ describe Twimock::User do
                                 twitter_id:          twitter_id,
                                 email:               email,
                                 password:            password,
-                                access_token:        access_token,
-                                access_token_secret: access_token_secret,
                                 application_id:      application_id,
                                 created_at:          created_at } }
 
@@ -47,6 +40,11 @@ describe Twimock::User do
   describe '::COLUMN_NAMES' do
     subject { Twimock::User::COLUMN_NAMES }
     it { is_expected.to eq column_names }
+  end
+
+  describe '::CHILDREN' do
+    subject { Twimock::User::CHILDREN }
+    it { is_expected.to eq children }
   end
 
   describe '::INFO_KEYS' do
@@ -107,32 +105,6 @@ describe Twimock::User do
         end
       end
 
-      describe '.access_token' do
-        subject { Twimock::User.new.access_token }
-        it { is_expected.to be_kind_of String }
-
-        describe '.include?(id)' do
-          before { @user = Twimock::User.new }
-          subject { @user.access_token }
-          it { is_expected.to include @user.id.to_s }
-        end
-
-        describe '.size' do
-          subject { Twimock::User.new.access_token.size }
-          it { is_expected.to be <= 50 }
-        end
-      end
-
-      describe '.access_token_secret' do
-        subject { Twimock::User.new.access_token_secret }
-        it { is_expected.to be_kind_of String }
-
-        describe '.size' do
-          subject { Twimock::User.new.access_token_secret.size }
-          it { is_expected.to eq 45 }
-        end
-      end
-
       describe '.application_id' do
         subject { Twimock::User.new.application_id }
         it { is_expected.to be_nil }
@@ -169,11 +141,6 @@ describe Twimock::User do
       describe '.identifier' do
         subject { Twimock::User.new(@opts).identifier }
         it { is_expected.to eq @opts[:identifier] }
-      end
-
-      describe '.access_token' do
-        subject { Twimock::User.new(@opts).access_token }
-        it { is_expected.to include @opts[:identifier].to_s }
       end
     end
 

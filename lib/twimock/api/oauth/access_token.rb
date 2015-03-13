@@ -11,6 +11,7 @@ module Twimock
         PATH   = "/oauth/access_token"
         AUTHORIZATION_REGEXP = /OAuth oauth_body_hash=\"(.*)\", oauth_consumer_key=\"(.*)\", oauth_nonce=\"(.*)\", oauth_signature=\"(.*)\", oauth_signature_method=\"(.*)\", oauth_timestamp=\"(.*)\", oauth_token=\"(.*)\", oauth_verifier=\"(.*)\", oauth_version=\"(.*)\"/
 
+        # TODO : access_tokenをuserから切り出す
         def call(env)
           return super unless called?(env)
           begin

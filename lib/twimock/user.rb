@@ -7,8 +7,8 @@ module Twimock
   # TODO: 要改善 AccessTokenをUserから分離
   class User < Database::Table
     TABLE_NAME = :users
-    COLUMN_NAMES = [:id, :name, :twitter_id, :email, :password, :access_token, :access_token_secret, :application_id, :created_at]
-    CHILDREN = [ AccessToken, RequestToken ]
+    COLUMN_NAMES = [:id, :name, :twitter_id, :email, :password, :application_id, :created_at]
+    CHILDREN = [ Twimock::AccessToken, Twimock::RequestToken ]
     INFO_KEYS = [:id, :name, :created_at]
 
     def initialize(options={})
@@ -19,8 +19,6 @@ module Twimock
       @twitter_id          = opts.twitter_id          || @name.downcase.gsub(" ", "_")
       @email               = opts.email               || Faker::Internet.email
       @password            = opts.password            || Faker::Internet.password
-      @access_token        = opts.access_token        || create_access_token
-      @access_token_secret = opts.access_token_secret || Faker::Lorem.characters(45)
       app_id = opts.application_id.to_i
       @application_id = (app_id > 0) ? app_id : nil
       @created_at     = opts.created_at
@@ -58,10 +56,6 @@ module Twimock
     def create_user_name
       n = Faker::Name.name
       (n.include?("'") || n.include?(".")) ? create_user_name : n
-    end
-
-    def create_access_token
-      "#{@id}-#{Faker::Lorem.characters(39)}"
     end
   end
 end
