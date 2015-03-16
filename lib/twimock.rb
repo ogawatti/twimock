@@ -15,7 +15,7 @@ module Twimock
   extend self
 
   def auth_hash(access_token_string=nil)
-    return Twimock::AuthHash.new if access_token_string.blank? || access_token_string == true
+    return Twimock::AuthHash.new unless validate_access_token_string(access_token_string)
 
     if access_token = Twimock::AccessToken.find_by_string(access_token_string)
       if user = Twimock::User.find_by_id(access_token.user_id)
@@ -29,5 +29,11 @@ module Twimock
       end
     end
     hash || Twimock::AuthHash.new
+  end
+
+  private
+
+  def validate_access_token_string(string)
+    string.kind_of?(String) && string.size > 0
   end
 end

@@ -29,6 +29,8 @@ describe Twimock::User do
                                 password:            password,
                                 application_id:      application_id,
                                 created_at:          created_at } }
+  let(:access_token_string_size) { 50 }
+  let(:access_token_secret_size) { 45 }
 
   after { remove_dynamically_defined_all_method }
 
@@ -203,9 +205,9 @@ describe Twimock::User do
           expect(@access_token.user_id).to be_nil
           expect(@access_token.application_id).to be_nil
           expect(@access_token.string).not_to be_nil
-          expect(@access_token.string.size).to eq 50
+          expect(@access_token.string.size).to eq access_token_string_size
           expect(@access_token.secret).not_to be_nil
-          expect(@access_token.secret.size).to eq 45
+          expect(@access_token.secret.size).to eq access_token_secret_size
         end
       end
 
@@ -224,9 +226,9 @@ describe Twimock::User do
           expect(@access_token.user_id).to eq @user.id
           expect(@access_token.application_id).to be_nil
           expect(@access_token.string).not_to be_nil
-          expect(@access_token.string.size).to eq 50
+          expect(@access_token.string.size).to eq access_token_string_size
           expect(@access_token.secret).not_to be_nil
-          expect(@access_token.secret.size).to eq 45
+          expect(@access_token.secret.size).to eq access_token_secret_size
         end
       end
     end
@@ -258,9 +260,9 @@ describe Twimock::User do
             expect(@access_token.user_id).to be_nil
             expect(@access_token.application_id).to eq @application.id
             expect(@access_token.string).not_to be_nil
-            expect(@access_token.string.size).to eq 50
+            expect(@access_token.string.size).to eq access_token_string_size
             expect(@access_token.secret).not_to be_nil
-            expect(@access_token.secret.size).to eq 45
+            expect(@access_token.secret.size).to eq access_token_secret_size
           end
         end
 
@@ -279,9 +281,9 @@ describe Twimock::User do
             expect(@access_token.user_id).to eq @user.id
             expect(@access_token.application_id).to eq @application.id
             expect(@access_token.string).not_to be_nil
-            expect(@access_token.string.size).to eq 50
+            expect(@access_token.string.size).to eq access_token_string_size
             expect(@access_token.secret).not_to be_nil
-            expect(@access_token.secret.size).to eq 45
+            expect(@access_token.secret.size).to eq access_token_secret_size
           end
         end
       end
