@@ -48,7 +48,7 @@ describe Twimock do
         stub_const("Twimock::Database::DEFAULT_DB_NAME", db_name)
         @database = Twimock::Database.new
         application = Twimock::Application.create!
-        @user = Twimock::User.create!(application_id: application.id)
+        @user = Twimock::User.create!
         @access_token = @user.generate_access_token
       end
       after { @database.drop }

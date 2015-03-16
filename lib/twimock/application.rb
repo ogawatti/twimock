@@ -1,12 +1,13 @@
 require 'faker'
 require 'twimock/database/table'
-require 'twimock/user'
+require 'twimock/access_token'
+require 'twimock/request_token'
 
 module Twimock
   class Application < Database::Table
     TABLE_NAME = :applications
     COLUMN_NAMES = [:id, :api_key, :api_secret, :created_at]
-    CHILDREN = [ User ]
+    CHILDREN = [ Twimock::AccessToken, Twimock::RequestToken ]
 
     # WANT : DBに登録済みの値と重複しないようにする(id, api_secret)
     def initialize(options={})

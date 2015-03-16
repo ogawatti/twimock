@@ -54,7 +54,7 @@ describe Twimock::API::Account::VerifyCredentials do
         before do 
           @application = Twimock::Application.new
           @application.save!
-          @user = Twimock::User.new(application_id: @application.id)
+          @user = Twimock::User.new
           @user.save!
           @access_token = @user.generate_access_token(@application.id)
         end
@@ -102,7 +102,7 @@ describe Twimock::API::Account::VerifyCredentials do
       before do 
         @application = Twimock::Application.new
         @application.save!
-        @user = Twimock::User.new(application_id: @application.id)
+        @user = Twimock::User.new
         @user.save!
         @access_token = @user.generate_access_token(@application.id)
         allow(Twimock::User).to receive(:find_by_id) { raise }

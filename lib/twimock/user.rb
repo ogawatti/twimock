@@ -7,7 +7,7 @@ module Twimock
   # TODO: 要改善 AccessTokenをUserから分離
   class User < Database::Table
     TABLE_NAME = :users
-    COLUMN_NAMES = [:id, :name, :twitter_id, :email, :password, :application_id, :created_at]
+    COLUMN_NAMES = [:id, :name, :twitter_id, :email, :password, :created_at]
     CHILDREN = [ Twimock::AccessToken, Twimock::RequestToken ]
     INFO_KEYS = [:id, :name, :created_at]
 
@@ -19,8 +19,6 @@ module Twimock
       @twitter_id          = opts.twitter_id          || @name.downcase.gsub(" ", "_")
       @email               = opts.email               || Faker::Internet.email
       @password            = opts.password            || Faker::Internet.password
-      app_id = opts.application_id.to_i
-      @application_id = (app_id > 0) ? app_id : nil
       @created_at     = opts.created_at
     end
 
@@ -37,8 +35,7 @@ module Twimock
         raise Twimock::Errors::ApplicationNotFound unless application
       end
 
-      options = { application_id: application_id }
-      access_token = Twimock::AccessToken.new(options)
+      access_token = Twimock::AccessToken.new({ application_id: application_id })
       if self.persisted?
         access_token.user_id = self.id
         access_token.save!

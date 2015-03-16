@@ -42,11 +42,9 @@ module Twimock
         users      = data.users
 
         # Validate data format
-        [:id, :api_key, :api_secret, :users].each { |key| validate_format(key, data.send(key)) }
+        [:id, :api_key, :api_secret, :users].each {|key| validate_format(key, data.send(key)) }
         users.each do |user|
-          [:id, :name, :password, :access_token, :access_token_secret, :application_id].each do |key|
-            validate_format(key, user.send(key))
-          end
+          [:id, :name, :password].each {|key| validate_format(key, user.send(key)) }
         end
 
         # Create application and user record
@@ -56,10 +54,7 @@ module Twimock
           access_token.string = options.delete(:access_token)
           access_token.secret = options.delete(:access_token_secret)
           user = Twimock::User.new(options)
-          unless Twimock::User.find_by_id(user.id)
-            user.application_id = app.id
-            user.save!
-          end
+          user.save! unless Twimock::User.find_by_id(user.id)
           unless Twimock::AccessToken.find_by_string(access_token.string)
             access_token.user_id = user.id
             access_token.save!
@@ -75,10 +70,7 @@ module Twimock
                        api_secret: [String],
                        users: [Array],
                        name: [String],
-                       password: [String],
-                       access_token: [String],
-                       access_token_secret: [String],
-                       application_id: [String, Integer] }
+                       password: [String] }
 
     def available?(key, value)
       return false unless AVAILABLE_TYPE[key].any? { |t| value.kind_of?(t) }

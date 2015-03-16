@@ -83,7 +83,7 @@ describe Twimock::API::OAuth::AccessToken do
         before do
           app = Twimock::Application.new
           app.save!
-          user = Twimock::User.new(application_id: app.id)
+          user = Twimock::User.new
           user.save!
           request_token = Twimock::RequestToken.new(application_id: app.id, user_id: user.id)
           request_token.save!
@@ -95,7 +95,7 @@ describe Twimock::API::OAuth::AccessToken do
           before do
             app = Twimock::Application.new
             app.save!
-            user = Twimock::User.new(application_id: app.id)
+            user = Twimock::User.new
             user.save!
             request_token = Twimock::RequestToken.new(application_id: app.id, user_id: user.id)
             request_token.save!
@@ -158,8 +158,6 @@ describe Twimock::API::OAuth::AccessToken do
         before do
           app = Twimock::Application.new
           app.save!
-          user = Twimock::User.new(application_id: app.id)
-          user.save!
           request_token = Twimock::RequestToken.new(application_id: app.id)
           request_token.save!
           @authorization = create_authorization_header(app.api_key, request_token.string)

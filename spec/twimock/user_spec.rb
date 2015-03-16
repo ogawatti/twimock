@@ -10,7 +10,6 @@ describe Twimock::User do
                            :twitter_id,
                            :email,
                            :password,
-                           :application_id,
                            :created_at ] }
   let(:children)       { [ Twimock::AccessToken, Twimock::RequestToken ] }
   let(:info_keys)      { [ :id, :name, :created_at ] }
@@ -20,14 +19,12 @@ describe Twimock::User do
   let(:twitter_id)          { "test_user" }
   let(:email)               { "test@example.com" }
   let(:password)            { "testpass" }
-  let(:application_id)      { 1 }
   let(:created_at)          { Time.now }
   let(:options)             { { id:                  id, 
                                 name:                name,
                                 twitter_id:          twitter_id,
                                 email:               email,
                                 password:            password,
-                                application_id:      application_id,
                                 created_at:          created_at } }
   let(:access_token_string_size) { 50 }
   let(:access_token_secret_size) { 45 }
@@ -107,11 +104,6 @@ describe Twimock::User do
         end
       end
 
-      describe '.application_id' do
-        subject { Twimock::User.new.application_id }
-        it { is_expected.to be_nil }
-      end
-
       describe '.created_at' do
         subject { Twimock::User.new.created_at }
         it { is_expected.to be_nil }
@@ -143,17 +135,6 @@ describe Twimock::User do
       describe '.identifier' do
         subject { Twimock::User.new(@opts).identifier }
         it { is_expected.to eq @opts[:identifier] }
-      end
-    end
-
-    context 'with application_id option but it is not integer' do
-      before { @opts = { application_id: "test_id" } }
-      subject { Twimock::User.new(@opts) }
-      it { is_expected.to be_kind_of Twimock::User }
-
-      describe '.application_id' do
-        subject { Twimock::User.new(@opts).application_id }
-        it { is_expected.to be_nil }
       end
     end
 
@@ -214,7 +195,6 @@ describe Twimock::User do
       context 'when user has saved' do
         before do 
           @user = Twimock::User.new
-          @user.application_id = 1
           @user.save!
           @access_token = @user.generate_access_token
         end
@@ -269,7 +249,6 @@ describe Twimock::User do
         context 'and user has saved' do
           before do 
             @user = Twimock::User.new
-            @user.application_id = @application.id
             @user.save!
             @access_token = @user.generate_access_token(@application.id)
           end
