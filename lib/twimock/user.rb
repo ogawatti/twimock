@@ -1,13 +1,14 @@
 require 'faker'
 require 'twimock/database/table'
+require 'twimock/access_token'
 require 'twimock/request_token'
 
 module Twimock
   # TODO: 要改善 AccessTokenをUserから分離
   class User < Database::Table
     TABLE_NAME = :users
-    COLUMN_NAMES = [:id, :name, :twitter_id, :email, :password, :access_token, :access_token_secret, :application_id, :created_at]
-    CHILDREN = [ RequestToken ]
+    COLUMN_NAMES = [:id, :name, :twitter_id, :email, :password, :created_at]
+    CHILDREN = [ Twimock::AccessToken, Twimock::RequestToken ]
     INFO_KEYS = [:id, :name, :created_at]
 
     def initialize(options={})
@@ -18,10 +19,6 @@ module Twimock
       @twitter_id          = opts.twitter_id          || @name.downcase.gsub(" ", "_")
       @email               = opts.email               || Faker::Internet.email
       @password            = opts.password            || Faker::Internet.password
-      @access_token        = opts.access_token        || create_access_token
-      @access_token_secret = opts.access_token_secret || Faker::Lorem.characters(45)
-      app_id = opts.application_id.to_i
-      @application_id = (app_id > 0) ? app_id : nil
       @created_at     = opts.created_at
     end
 
@@ -30,6 +27,20 @@ module Twimock
       INFO_KEYS.each { |key| info_hash[key] = self.instance_variable_get("@#{key}") }
       info_hash.id_str = info_hash.id.to_s
       info_hash
+    end
+
+    def generate_access_token(application_id=nil)
+      if application_id
+        application = Twimock::Application.find_by_id(application_id)
+        raise Twimock::Errors::ApplicationNotFound unless application
+      end
+
+      access_token = Twimock::AccessToken.new({ application_id: application_id })
+      if self.persisted?
+        access_token.user_id = self.id
+        access_token.save!
+      end
+      access_token
     end
 
     def self.find_by_tiwtter_id_or_email(value)
@@ -42,10 +53,6 @@ module Twimock
     def create_user_name
       n = Faker::Name.name
       (n.include?("'") || n.include?(".")) ? create_user_name : n
-    end
-
-    def create_access_token
-      "#{@id}-#{Faker::Lorem.characters(39)}"
     end
   end
 end

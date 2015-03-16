@@ -7,7 +7,7 @@ describe Twimock::Application do
 
   let(:table_name)   { :applications }
   let(:column_names) { [ :id, :api_key, :api_secret, :created_at ] }
-  let(:children)     { [ Twimock::User ] }
+  let(:children)     { [ Twimock::AccessToken, Twimock::RequestToken ] }
 
   let(:id)           { 1 }
   let(:api_key)      { "test_api_key" }
@@ -105,13 +105,15 @@ describe Twimock::Application do
     context 'when has user' do
       before do
         @application = Twimock::Application.create!
-        Twimock::User.create!(application_id: @application.id)
+        Twimock::User.create!
       end
 
       it 'should delete permissions' do
         @application.destroy
-        users = Twimock::User.find_all_by_application_id(@application.id)
-        expect(users).to be_empty
+        access_tokens  = Twimock::AccessToken.find_all_by_application_id(@application.id)
+        expect(access_tokens).to be_empty
+        request_tokens = Twimock::RequestToken.find_all_by_application_id(@application.id)
+        expect(request_tokens).to be_empty
       end
     end
   end

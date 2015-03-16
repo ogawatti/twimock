@@ -115,7 +115,7 @@ describe Twimock::Config do
           end
         end
 
-        [:id, :name, :password, :access_token, :access_token_secret, :application_id].each do |key|
+        [:id, :name, :password].each do |key|
           context "when users #{key} is not exist" do
             before do
               app[:users].first.delete(key)
@@ -136,12 +136,20 @@ describe Twimock::Config do
           expect{ Twimock::Config.load_users(path) }.not_to raise_error
           expect(Twimock::Application.all.count).to eq app_count
           expect(Twimock::User.all.count).to eq user_count
+          expect(Twimock::AccessToken.all.count).to eq user_count
+
+          # 要改善 : yamlの全部が登録されたことがチェックされていない
           [:api_key, :api_secret].each do |key|
             expect(Twimock::Application.find_by_id(app[:id]).send(key).to_s).to eq app[key].to_s
           end
-          [:name, :password, :access_token, :access_token_secret, :application_id].each do |key|
+          [:name, :password].each do |key|
             expect(Twimock::User.find_by_id(user[:id]).send(key).to_s).to eq user[key].to_s
           end
+          access_tokens = Twimock::AccessToken.where(user_id: user[:id])
+          expect(access_tokens.count).to eq 1
+          access_token  = access_tokens.first
+          expect(access_token.string).to eq user[:access_token]
+          expect(access_token.secret).to eq user[:access_token_secret]
         end
       end
 
@@ -156,21 +164,24 @@ describe Twimock::Config do
 end
 
 def app_data(user_count = 1)
-  app_id = Faker::Number.number(15).to_i
   users = []
   user_count.times do
-    user = { id: Faker::Number.number(15),
-             name: 'test_user',
-             password: 'test_pass',
-             access_token: 'test_token',
-             access_token_secret: "test_token_secret_#{Faker::Number.number(15)}",
-             application_id: app_id }
+    user = { id:                  Faker::Number.number(10),
+             name:                create_user_name,
+             password:            Faker::Internet.password,
+             access_token:        Faker::Lorem.characters(50),
+             access_token_secret: Faker::Lorem.characters(45) }
     users.push user
   end
-  app = { id: app_id,
-          api_key: 'test_api_key',
-          api_secret: "test_api_secret_#{app_id}",
-          users: users }
+  app = { id:         Faker::Number.number(10).to_i,
+          api_key:    Faker::Lorem.characters(25),
+          api_secret: Faker::Lorem.characters(50),
+          users:      users }
+end
+
+def create_user_name
+  n = Faker::Name.name
+  (n.include?("'") || n.include?(".")) ? create_user_name : n
 end
 
 def create_temporary_yaml_file(data)

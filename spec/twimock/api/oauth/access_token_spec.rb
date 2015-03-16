@@ -59,11 +59,13 @@ describe Twimock::API::OAuth::AccessToken do
       user_id            = $3.to_i
       screen_name        = $4
       
-      user = Twimock::User.find_by_access_token(oauth_token)
+      access_token = Twimock::AccessToken.find_by_string(oauth_token)
+      expect(access_token).not_to be_nil
+      expect(access_token.secret).to eq oauth_token_secret
+      expect(access_token.user_id).to eq user_id
+      user = Twimock::User.find_by_id(user_id)
       expect(user).not_to be_nil
-      expect(oauth_token_secret).to eq user.access_token_secret
-      expect(user_id).to eq user.id
-      expect(screen_name).to eq user.twitter_id
+      expect(user.twitter_id).to eq screen_name
     end
   end
 
@@ -81,7 +83,7 @@ describe Twimock::API::OAuth::AccessToken do
         before do
           app = Twimock::Application.new
           app.save!
-          user = Twimock::User.new(application_id: app.id)
+          user = Twimock::User.new
           user.save!
           request_token = Twimock::RequestToken.new(application_id: app.id, user_id: user.id)
           request_token.save!
@@ -93,7 +95,7 @@ describe Twimock::API::OAuth::AccessToken do
           before do
             app = Twimock::Application.new
             app.save!
-            user = Twimock::User.new(application_id: app.id)
+            user = Twimock::User.new
             user.save!
             request_token = Twimock::RequestToken.new(application_id: app.id, user_id: user.id)
             request_token.save!
@@ -156,8 +158,6 @@ describe Twimock::API::OAuth::AccessToken do
         before do
           app = Twimock::Application.new
           app.save!
-          user = Twimock::User.new(application_id: app.id)
-          user.save!
           request_token = Twimock::RequestToken.new(application_id: app.id)
           request_token.save!
           @authorization = create_authorization_header(app.api_key, request_token.string)

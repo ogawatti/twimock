@@ -104,7 +104,7 @@ describe Twimock::API::Intent::Sessions do
         application.save!
         request_token = Twimock::RequestToken.new(application_id: application.id)
         request_token.save!
-        user          = Twimock::User.new(application_id: application.id, name: "testuser")
+        user          = Twimock::User.new(name: "testuser")
         user.save!
         @body = { 'session[username_or_email]' => "invalidusername",
                   oauth_token: request_token.string }
@@ -119,7 +119,7 @@ describe Twimock::API::Intent::Sessions do
         application.save!
         request_token = Twimock::RequestToken.new(application_id: application.id)
         request_token.save!
-        user          = Twimock::User.new(application_id: application.id, password: "testpass")
+        user          = Twimock::User.new(password: "testpass")
         user.save!
         @body = { 'session[username_or_email]' => user.twitter_id,
                   'session[password]' => "invalidpassword",
@@ -135,7 +135,7 @@ describe Twimock::API::Intent::Sessions do
         application.save!
         @request_token = Twimock::RequestToken.new(application_id: application.id)
         @request_token.save!
-        @user          = Twimock::User.new(application_id: application.id)
+        @user          = Twimock::User.new
         @user.save!
         @body = { 'session[username_or_email]' => @user.twitter_id,
                   'session[password]' => @user.password,
@@ -151,7 +151,7 @@ describe Twimock::API::Intent::Sessions do
         application.save!
         @request_token = Twimock::RequestToken.new(application_id: application.id)
         @request_token.save!
-        @user          = Twimock::User.new(application_id: application.id)
+        @user          = Twimock::User.new
         @user.save!
         @body = { 'session[username_or_email]' => @user.email,
                   'session[password]' => @user.password,
