@@ -139,9 +139,11 @@ describe Twimock::Config do
           [:api_key, :api_secret].each do |key|
             expect(Twimock::Application.find_by_id(app[:id]).send(key).to_s).to eq app[key].to_s
           end
-          [:name, :password, :access_token, :access_token_secret, :application_id].each do |key|
+          [:name, :password, :application_id].each do |key|
             expect(Twimock::User.find_by_id(user[:id]).send(key).to_s).to eq user[key].to_s
           end
+          expect(Twimock::AccessToken.find_by_string(user[:access_token])).not_to be_nil
+          expect(Twimock::AccessToken.find_by_secret(user[:access_token_secret])).not_to be_nil
         end
       end
 

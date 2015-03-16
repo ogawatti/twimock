@@ -14,7 +14,7 @@ describe Twimock::API::Account::VerifyCredentials do
   let(:oauth_signature)        { "I7LRwjN%2FRvqp53kia2fGCg%2FrBHo%3D" }
   let(:oauth_signature_method) { "HMAC-SHA1" }
   let(:oauth_timestamp)        { "1422273906" }
-  let(:oauth_token)            { Twimock::User.new.access_token }
+  let(:oauth_token)            { Twimock::AccessToken.string }
   let(:oauth_version)          { "1.0" }
   let(:authorization_header)   { [ "OAuth oauth_consumer_key=\"#{oauth_consumer_key}\", oauth_nonce=\"#{oauth_nonce}\", oauth_signature=\"#{oauth_signature}\", oauth_signature_method=\"#{oauth_signature_method}\", oauth_timestamp=\"#{oauth_timestamp}\", oauth_token=\"#{oauth_token}\", oauth_version=\"#{oauth_version}\"" ] }
 
@@ -49,13 +49,14 @@ describe Twimock::API::Account::VerifyCredentials do
       context 'that is correct' do
         let(:header) { { "authorization" => authorization_header } }
         let(:oauth_consumer_key) { @application.api_key }
-        let(:oauth_token)        { @user.access_token }
+        let(:oauth_token)        { @access_token.string }
 
         before do 
           @application = Twimock::Application.new
           @application.save!
           @user = Twimock::User.new(application_id: @application.id)
           @user.save!
+          @access_token = @user.generate_access_token(@application.id)
         end
 
         it 'should return 200 OK' do
@@ -96,14 +97,15 @@ describe Twimock::API::Account::VerifyCredentials do
     context 'raise error that is not catched' do
       let(:header) { { "authorization" => authorization_header } }
       let(:oauth_consumer_key) { @application.api_key }
-      let(:oauth_token)        { @user.access_token }
+      let(:oauth_token)        { @access_token.string }
 
       before do 
         @application = Twimock::Application.new
         @application.save!
         @user = Twimock::User.new(application_id: @application.id)
         @user.save!
-        allow(Twimock::User).to receive(:find_by_access_token){ raise }
+        @access_token = @user.generate_access_token(@application.id)
+        allow(Twimock::User).to receive(:find_by_id) { raise }
         get path, body, header
       end
 

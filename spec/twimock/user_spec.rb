@@ -10,21 +10,16 @@ describe Twimock::User do
                            :twitter_id,
                            :email,
                            :password,
-                           :access_token,
-                           :access_token_secret,
                            :application_id,
                            :created_at ] }
-  let(:info_keys)      { [ :id,
-                           :name,
-                           :created_at ] }
+  let(:children)       { [ Twimock::AccessToken, Twimock::RequestToken ] }
+  let(:info_keys)      { [ :id, :name, :created_at ] }
 
   let(:id)                  { 1 }
   let(:name)                { "test user" }
   let(:twitter_id)          { "test_user" }
   let(:email)               { "test@example.com" }
   let(:password)            { "testpass" }
-  let(:access_token)        { "test_token" }
-  let(:access_token_secret) { "test_token_secret" }
   let(:application_id)      { 1 }
   let(:created_at)          { Time.now }
   let(:options)             { { id:                  id, 
@@ -32,10 +27,10 @@ describe Twimock::User do
                                 twitter_id:          twitter_id,
                                 email:               email,
                                 password:            password,
-                                access_token:        access_token,
-                                access_token_secret: access_token_secret,
                                 application_id:      application_id,
                                 created_at:          created_at } }
+  let(:access_token_string_size) { 50 }
+  let(:access_token_secret_size) { 45 }
 
   after { remove_dynamically_defined_all_method }
 
@@ -47,6 +42,11 @@ describe Twimock::User do
   describe '::COLUMN_NAMES' do
     subject { Twimock::User::COLUMN_NAMES }
     it { is_expected.to eq column_names }
+  end
+
+  describe '::CHILDREN' do
+    subject { Twimock::User::CHILDREN }
+    it { is_expected.to eq children }
   end
 
   describe '::INFO_KEYS' do
@@ -107,32 +107,6 @@ describe Twimock::User do
         end
       end
 
-      describe '.access_token' do
-        subject { Twimock::User.new.access_token }
-        it { is_expected.to be_kind_of String }
-
-        describe '.include?(id)' do
-          before { @user = Twimock::User.new }
-          subject { @user.access_token }
-          it { is_expected.to include @user.id.to_s }
-        end
-
-        describe '.size' do
-          subject { Twimock::User.new.access_token.size }
-          it { is_expected.to be <= 50 }
-        end
-      end
-
-      describe '.access_token_secret' do
-        subject { Twimock::User.new.access_token_secret }
-        it { is_expected.to be_kind_of String }
-
-        describe '.size' do
-          subject { Twimock::User.new.access_token_secret.size }
-          it { is_expected.to eq 45 }
-        end
-      end
-
       describe '.application_id' do
         subject { Twimock::User.new.application_id }
         it { is_expected.to be_nil }
@@ -169,11 +143,6 @@ describe Twimock::User do
       describe '.identifier' do
         subject { Twimock::User.new(@opts).identifier }
         it { is_expected.to eq @opts[:identifier] }
-      end
-
-      describe '.access_token' do
-        subject { Twimock::User.new(@opts).access_token }
-        it { is_expected.to include @opts[:identifier].to_s }
       end
     end
 
@@ -212,6 +181,112 @@ describe Twimock::User do
       expect(info).to be_kind_of Hashie::Mash
       Twimock::User::INFO_KEYS.each { |key| expect(info.send(key)).to eq user.send(key) }
       expect(info.id_str).to eq user.id.to_s
+    end
+  end
+
+  describe '#generate_access_token' do
+    before do
+      stub_const("Twimock::Database::DEFAULT_DB_NAME", db_name)
+      @database = Twimock::Database.new
+    end
+    after { @database.drop }
+
+    context 'without application_id' do
+      context 'when user does not save yet' do
+        before do 
+          @user = Twimock::User.new
+          @access_token = @user.generate_access_token
+        end
+
+        it 'should return not saved Twimock::AccessToken instance' do
+          expect(@access_token).to be_instance_of Twimock::AccessToken
+          expect(@access_token.persisted?).to eq false
+          expect(@access_token.id).to be_nil
+          expect(@access_token.user_id).to be_nil
+          expect(@access_token.application_id).to be_nil
+          expect(@access_token.string).not_to be_nil
+          expect(@access_token.string.size).to eq access_token_string_size
+          expect(@access_token.secret).not_to be_nil
+          expect(@access_token.secret.size).to eq access_token_secret_size
+        end
+      end
+
+      context 'when user has saved' do
+        before do 
+          @user = Twimock::User.new
+          @user.application_id = 1
+          @user.save!
+          @access_token = @user.generate_access_token
+        end
+
+        it 'should return saved Twimock::AccessToken instance' do
+          expect(@access_token).to be_instance_of Twimock::AccessToken
+          expect(@access_token.persisted?).to eq true
+          expect(@access_token.id).not_to be_nil
+          expect(@access_token.user_id).to eq @user.id
+          expect(@access_token.application_id).to be_nil
+          expect(@access_token.string).not_to be_nil
+          expect(@access_token.string.size).to eq access_token_string_size
+          expect(@access_token.secret).not_to be_nil
+          expect(@access_token.secret.size).to eq access_token_secret_size
+        end
+      end
+    end
+
+    context 'with application_id' do
+      context 'when specified application does not exist' do
+        let(:user) { Twimock::User.new }
+        let(:application_id) { 100000 }
+        subject { lambda { user.generate_access_token(application_id) } }
+        it { is_expected.to raise_error Twimock::Errors::ApplicationNotFound }
+      end
+
+      context 'when specified application exist' do
+        before do
+          @application = Twimock::Application.new
+          @application.save!
+        end
+
+        context 'and user does not saved' do
+          before do 
+            @user = Twimock::User.new
+            @access_token = @user.generate_access_token(@application.id)
+          end
+
+          it 'should return not saved Twimock::AccessToken instance' do
+            expect(@access_token).to be_instance_of Twimock::AccessToken
+            expect(@access_token.persisted?).to eq false
+            expect(@access_token.id).to be_nil
+            expect(@access_token.user_id).to be_nil
+            expect(@access_token.application_id).to eq @application.id
+            expect(@access_token.string).not_to be_nil
+            expect(@access_token.string.size).to eq access_token_string_size
+            expect(@access_token.secret).not_to be_nil
+            expect(@access_token.secret.size).to eq access_token_secret_size
+          end
+        end
+
+        context 'and user has saved' do
+          before do 
+            @user = Twimock::User.new
+            @user.application_id = @application.id
+            @user.save!
+            @access_token = @user.generate_access_token(@application.id)
+          end
+
+          it 'should return saved Twimock::AccessToken instance' do
+            expect(@access_token).to be_instance_of Twimock::AccessToken
+            expect(@access_token.persisted?).to eq true
+            expect(@access_token.id).not_to be_nil
+            expect(@access_token.user_id).to eq @user.id
+            expect(@access_token.application_id).to eq @application.id
+            expect(@access_token.string).not_to be_nil
+            expect(@access_token.string.size).to eq access_token_string_size
+            expect(@access_token.secret).not_to be_nil
+            expect(@access_token.secret.size).to eq access_token_secret_size
+          end
+        end
+      end
     end
   end
 end
