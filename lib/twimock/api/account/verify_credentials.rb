@@ -17,13 +17,12 @@ module Twimock
           begin
             authorization_header = env["authorization"] || env["HTTP_AUTHORIZATION"]
             oauth = parse_authorization_header(authorization_header)
-            access_token = oauth.token
-            consumer_key = oauth.consumer_key
 
-            raise Twimock::Errors::InvalidConsumerKey.new if !validate_consumer_key(consumer_key)
-            application = Twimock::Application.find_by_api_key(consumer_key)
-            raise Twimock::Errors::InvalidAccessToken.new if !validate_access_token(access_token, application.id)
-            user = Twimock::User.find_by_access_token(access_token)
+            raise Twimock::Errors::InvalidConsumerKey.new if !validate_consumer_key(oauth.consumer_key)
+            application = Twimock::Application.find_by_api_key(oauth.consumer_key)
+            raise Twimock::Errors::InvalidAccessToken.new if !validate_access_token(oauth.token, application.id)
+            access_token = Twimock::AccessToken.find_by_string(oauth.token)
+            user = Twimock::User.find_by_id(access_token.user_id)
           rescue Twimock::Errors::InvalidAccessToken, Twimock::Errors::InvalidConsumerKey => @error
             return unauthorized
           rescue => @error
