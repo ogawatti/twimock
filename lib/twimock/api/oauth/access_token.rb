@@ -11,7 +11,6 @@ module Twimock
         PATH   = "/oauth/access_token"
         AUTHORIZATION_REGEXP = /OAuth oauth_body_hash=\"(.*)\", oauth_consumer_key=\"(.*)\", oauth_nonce=\"(.*)\", oauth_signature=\"(.*)\", oauth_signature_method=\"(.*)\", oauth_timestamp=\"(.*)\", oauth_token=\"(.*)\", oauth_verifier=\"(.*)\", oauth_version=\"(.*)\"/
 
-        # TODO : access_tokenをuserから切り出す
         def call(env)
           return super unless called?(env)
           begin
@@ -27,6 +26,10 @@ module Twimock
             end
             request_token = Twimock::RequestToken.find_by_string(request_token)
             user = Twimock::User.find_by_id(request_token.user_id)
+            access_tokens = Twimock::AccessToken.where(user_id: user.id)
+            unless access_token = access_tokens.find{|at| at.application_id == application.id }
+              access_token = user.generate_access_token(application.id)
+            end
           rescue Twimock::Errors::InvalidConsumerKey, Twimock::Errors::InvalidRequestToken => @error
             return unauthorized
           rescue => @error
@@ -35,8 +38,8 @@ module Twimock
 
           status = "200 OK"
           params = {
-            oauth_token:        user.access_token,
-            oauth_token_secret: user.access_token_secret,
+            oauth_token:        access_token.string,
+            oauth_token_secret: access_token.secret,
             user_id:            user.id,
             screen_name:        user.twitter_id
           }
