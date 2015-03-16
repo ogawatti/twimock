@@ -4,7 +4,7 @@ describe Twimock::Database do
   let(:db_name)         { ".test" }
   let(:default_db_name) { "twimock" }
   let(:adapter)         { "sqlite3" }
-  let(:table_names)     { [:applications, :users, :access_tokens, :request_tokens] }
+  let(:table_names)     { [:applications, :users, :request_tokens] }
   let(:db_directory)    { File.expand_path("../../../db", __FILE__) }
   let(:db_filepath)     { File.join(db_directory, "#{db_name}.#{adapter}") }
 
