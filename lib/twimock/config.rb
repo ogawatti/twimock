@@ -52,17 +52,10 @@ module Twimock
         # Create application and user record
         app = Twimock::Application.create!({ id: app_id, api_key: api_key, api_secret: api_secret })
         users.each do |options|
-          access_token = AccessToken.new
-          access_token.string = options.delete(:access_token)
-          access_token.secret = options.delete(:access_token_secret)
           user = Twimock::User.new(options)
           unless Twimock::User.find_by_id(user.id)
             user.application_id = app.id
             user.save!
-          end
-          unless Twimock::AccessToken.find_by_string(access_token.string)
-            access_token.user_id = user.id
-            access_token.save!
           end
         end
       end

@@ -6,7 +6,7 @@ module Twimock
     ADAPTER = "sqlite3"
     DB_DIRECTORY = File.expand_path("../../../db", __FILE__)
     DEFAULT_DB_NAME = "twimock"
-    TABLE_NAMES = [:applications, :users, :access_tokens, :request_tokens]
+    TABLE_NAMES = [:applications, :users, :request_tokens]
 
     attr_reader :name
     attr_reader :connection
@@ -98,22 +98,11 @@ module Twimock
           twitter_id           TEXT      NOT NULL,
           email                TEXT      NOT NULL,
           password             TEXT      NOT NULL,
+          access_token         TEXT      NOT NULL,
+          access_token_secret  TEXT      NOT NULL,
           application_id       INTEGER   NOT NULL,
           created_at           DATETIME  NOT NULL,
-          UNIQUE(twitter_id, email));
-      SQL
-    end
-
-    def create_access_tokens_table
-      @connection.execute <<-SQL
-        CREATE TABLE access_tokens (
-          id              INTEGER   PRIMARY KEY AUTOINCREMENT,
-          string          TEXT      NOT NULL,
-          secret          TEXT      NOT NULL,
-          application_id  INTEGER,
-          user_id         INTEGER   NOT NULL,
-          created_at      DATETIME  NOT NULL,
-          UNIQUE(string, secret));
+          UNIQUE(twitter_id, email, access_token, access_token_secret));
       SQL
     end
 

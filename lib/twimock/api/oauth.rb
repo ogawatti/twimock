@@ -31,11 +31,11 @@ module Twimock
         true
       end
 
-      def validate_access_token(access_token_string, application_id)
-        return false if access_token_string.blank?
-        return false unless access_token = Twimock::AccessToken.find_by_string(access_token_string)
-        return false unless access_token.application_id
-        return false unless access_token.application_id == application_id
+      def validate_access_token(access_token, application_id)
+        return false if access_token.blank?
+        return false unless user = Twimock::User.find_by_access_token(access_token)
+        return false unless user.application_id
+        return false unless user.application_id == application_id
         true
       end
 
