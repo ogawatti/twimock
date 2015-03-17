@@ -57,6 +57,7 @@ module Twimock
           user.save! unless Twimock::User.find_by_id(user.id)
           unless Twimock::AccessToken.find_by_string(access_token.string)
             access_token.user_id = user.id
+            access_token.application_id = app_id
             access_token.save!
           end
         end
