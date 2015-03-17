@@ -117,10 +117,8 @@ describe Twimock::Config do
 
         [:id, :name, :password].each do |key|
           context "when users #{key} is not exist" do
-            before do
-              app[:users].first.delete(key)
-              it_behaves_like 'IncorrectDataFormat'
-            end
+            before { app[:users].first.delete(key) }
+            it_behaves_like 'IncorrectDataFormat'
           end
         end
       end
@@ -150,6 +148,7 @@ describe Twimock::Config do
           access_token  = access_tokens.first
           expect(access_token.string).to eq user[:access_token]
           expect(access_token.secret).to eq user[:access_token_secret]
+          expect(access_token.application_id).to eq app[:id]
         end
       end
 
