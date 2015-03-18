@@ -16,6 +16,7 @@ module Twimock
         def call(env)
           return super unless called?(env)
           begin
+            # TODO : アプリ認可をキャンセルした場合に対応する
             request = Rack::Request.new(env)
             body = query_string_to_hash(request.body.read)
             @oauth_token       = body.oauth_token
