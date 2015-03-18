@@ -23,7 +23,9 @@ module Twimock
             @username_or_email = body["session[username_or_email]"]
             @password          = body["session[password]"]
 
-            if !validate_request_token(@oauth_token)
+            if body.cancel
+              raise Twimock::Errors::AuthenticationCancel.new
+            elsif !validate_request_token(@oauth_token)
               raise Twimock::Errors::InvalidRequestToken.new
             elsif !(user = Twimock::User.find_by_tiwtter_id_or_email(@username_or_email))
               raise Twimock::Errors::InvalidUsernameOrEmail.new 
@@ -43,6 +45,12 @@ module Twimock
             body   = ""
             header = { "Content-Length" => body.bytesize.to_s,
                        "Location" => callback_url }
+            [ status, header, [ body ] ]
+          rescue Twimock::Errors::AuthenticationCancel
+            filepath = File.join(Twimock::API::OAuth::Authenticate::VIEW_DIRECTORY, "authenticate_cancel.html.erb")
+            status = 200
+            body   = ERB.new(File.read(filepath)).result(binding)
+            header = { "Content-Length" => body.bytesize.to_s }
             [ status, header, [ body ] ]
           rescue Twimock::Errors::InvalidUsernameOrEmail, Twimock::Errors::InvalidPassword => @error
             response = unauthorized

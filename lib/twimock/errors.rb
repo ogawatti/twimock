@@ -9,5 +9,6 @@ module Twimock
     class InvalidUsernameOrEmail < Error; end
     class InvalidPassword < Error; end
     class ApplicationNotFound < Error; end
+    class AuthenticationCancel < Error; end
   end
 end
