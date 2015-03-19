@@ -6,7 +6,7 @@
 
 # Twimock
 
-TODO: Write a gem description
+This gem is used to mock the communication part of the twitter api.
 
 ## Installation
 
