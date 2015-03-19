@@ -12,11 +12,12 @@ module Twimock
       class Sessions < OAuth
         METHOD = "POST"
         PATH   = "/intent/sessions"
+        VIEW_DIRECTORY = File.expand_path("../../../../../view", __FILE__)
+        VIEW_FILE_NAME = "authenticate_cancel.html.erb"
 
         def call(env)
           return super unless called?(env)
           begin
-            # TODO : アプリ認可をキャンセルした場合に対応する
             request = Rack::Request.new(env)
             body = query_string_to_hash(request.body.read)
             @oauth_token       = body.oauth_token
@@ -47,8 +48,7 @@ module Twimock
                        "Location" => callback_url }
             [ status, header, [ body ] ]
           rescue Twimock::Errors::AuthenticationCancel
-            filepath = File.join(Twimock::API::OAuth::Authenticate::VIEW_DIRECTORY, "authenticate_cancel.html.erb")
-            status = 200
+            status = 302
             body   = ERB.new(File.read(filepath)).result(binding)
             header = { "Content-Length" => body.bytesize.to_s }
             [ status, header, [ body ] ]
@@ -62,6 +62,12 @@ module Twimock
           rescue => @error
             internal_server_error
           end
+        end
+
+        private
+
+        def filepath
+          File.join(VIEW_DIRECTORY, VIEW_FILE_NAME)
         end
       end
     end
