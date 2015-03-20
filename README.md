@@ -24,8 +24,6 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
-
 ### For Rails App Settings (config/initializers/twimock.rb)
 
     # Create Twimock Application & User
