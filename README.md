@@ -47,7 +47,7 @@ Or install it yourself as:
       Rails.application.config.middleware.use middleware
     end
 
-### Create Apps and Users at onece by yaml file
+### Create Apps and Users at once by yaml file
 
     require 'twimock'
 
