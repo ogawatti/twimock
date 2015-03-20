@@ -12,8 +12,6 @@ module Twimock
       class Sessions < OAuth
         METHOD = "POST"
         PATH   = "/intent/sessions"
-        VIEW_DIRECTORY = File.expand_path("../../../../../view", __FILE__)
-        VIEW_FILE_NAME = "authenticate_cancel.html.erb"
 
         def call(env)
           return super unless called?(env)
@@ -49,8 +47,9 @@ module Twimock
             [ status, header, [ body ] ]
           rescue Twimock::Errors::AuthenticationCancel
             status = 302
-            body   = ERB.new(File.read(filepath)).result(binding)
-            header = { "Content-Length" => body.bytesize.to_s }
+            body   = Twimock::API::OAuth::Authorize.view
+            header = { "Content-Length" => body.bytesize.to_s,
+                       "Location" => "/oauth/authorize" }
             [ status, header, [ body ] ]
           rescue Twimock::Errors::InvalidUsernameOrEmail, Twimock::Errors::InvalidPassword => @error
             response = unauthorized
@@ -62,12 +61,6 @@ module Twimock
           rescue => @error
             internal_server_error
           end
-        end
-
-        private
-
-        def filepath
-          File.join(VIEW_DIRECTORY, VIEW_FILE_NAME)
         end
       end
     end

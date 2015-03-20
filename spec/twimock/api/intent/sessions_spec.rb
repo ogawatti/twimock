@@ -161,6 +161,19 @@ describe Twimock::API::Intent::Sessions do
       it_behaves_like 'API 302 Redircted Callback URL'
     end
 
+    context 'with authenticate canceled' do
+      it 'should return 302 Redirected /oauth/authorize' do
+        @body = { cancel: 'cancel' }
+        post path, @body, header
+
+        expect(last_response.status).to eq 302
+        expect(last_response.header).not_to be_blank
+        expect(last_response.header['Content-Length']).to eq last_response.body.bytesize.to_s
+        expect(last_response.header['Location']).to eq Twimock::API::OAuth::Authorize::PATH
+        expect(last_response.body).to eq Twimock::API::OAuth::Authorize.view
+      end
+    end
+
     context 'raise error that is not catched' do
       before do
         allow_any_instance_of(Twimock::API::Intent::Sessions).to receive(:query_string_to_hash) do
