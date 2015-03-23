@@ -162,15 +162,19 @@ describe Twimock::API::Intent::Sessions do
     end
 
     context 'with authenticate canceled' do
-      it 'should return 302 Redirected /oauth/authorize' do
-        @body = { cancel: 'cancel' }
+      before do
+        application   = Twimock::Application.new
+        application.save!
+        @request_token = Twimock::RequestToken.new(application_id: application.id)
+        @request_token.save!
+        @body = { oauth_token: @request_token.string, cancel: 'true' }
         post path, @body, header
+      end
 
-        expect(last_response.status).to eq 302
-        expect(last_response.header).not_to be_blank
-        expect(last_response.header['Content-Length']).to eq last_response.body.bytesize.to_s
+      it 'should return 307 Temporary Redirect /oauth/authorize' do
+        expect(last_response.status).to eq 307
         expect(last_response.header['Location']).to eq Twimock::API::OAuth::Authorize::PATH
-        expect(last_response.body).to eq Twimock::API::OAuth::Authorize.view
+        expect(last_response.body).to be_blank
       end
     end
 
