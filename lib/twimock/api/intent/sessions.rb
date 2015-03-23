@@ -22,10 +22,10 @@ module Twimock
             @username_or_email = body["session[username_or_email]"]
             @password          = body["session[password]"]
 
-            if body.cancel
-              raise Twimock::Errors::AuthenticationCancel.new
-            elsif !validate_request_token(@oauth_token)
+            if !validate_request_token(@oauth_token)
               raise Twimock::Errors::InvalidRequestToken.new
+            elsif body.cancel
+              raise Twimock::Errors::OAuthCancelled.new
             elsif !(user = Twimock::User.find_by_tiwtter_id_or_email(@username_or_email))
               raise Twimock::Errors::InvalidUsernameOrEmail.new 
             elsif @password.blank? || @password != user.password
@@ -45,9 +45,9 @@ module Twimock
             header = { "Content-Length" => body.bytesize.to_s,
                        "Location" => callback_url }
             [ status, header, [ body ] ]
-          rescue Twimock::Errors::AuthenticationCancel
-            status = 302
-            body   = Twimock::API::OAuth::Authorize.view
+          rescue Twimock::Errors::OAuthCancelled
+            status = 307
+            body   = ""
             header = { "Content-Length" => body.bytesize.to_s,
                        "Location" => "/oauth/authorize" }
             [ status, header, [ body ] ]
