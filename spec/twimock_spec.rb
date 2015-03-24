@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Twimock do
-  let(:version) { '0.0.1' }
+  let(:version) { '0.0.2' }
   let(:db_name) { '.test' }
   let(:provider) { 'twitter' }
 
