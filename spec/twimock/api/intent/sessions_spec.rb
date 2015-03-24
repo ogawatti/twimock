@@ -161,6 +161,24 @@ describe Twimock::API::Intent::Sessions do
       it_behaves_like 'API 302 Redircted Callback URL'
     end
 
+    context 'with authenticate canceled' do
+      before do
+        application   = Twimock::Application.new
+        application.save!
+        @request_token = Twimock::RequestToken.new(application_id: application.id)
+        @request_token.save!
+        @body = { oauth_token: @request_token.string, cancel: 'true' }
+        post path, @body, header
+      end
+
+      it 'should return 303 Temporary Redirect /oauth/authorize' do
+        expect(last_response.status).to eq 303
+        location = Twimock::API::OAuth::Authorize::PATH + "?oauth_token=#{@request_token.string}&cancel=true"
+        expect(last_response.header['Location']).to eq location
+        expect(last_response.body).to be_blank
+      end
+    end
+
     context 'raise error that is not catched' do
       before do
         allow_any_instance_of(Twimock::API::Intent::Sessions).to receive(:query_string_to_hash) do

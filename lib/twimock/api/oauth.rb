@@ -1,6 +1,8 @@
 require 'twimock/api/oauth/access_token'
 require 'twimock/api/oauth/request_token'
 require 'twimock/api/oauth/authenticate'
+require 'twimock/api/oauth/authorize'
+require 'twimock/api/oauth/cancelled'
 require 'twimock/api/intent/sessions'
 require 'twimock/api/account/verify_credentials'
 require 'twimock/errors'
