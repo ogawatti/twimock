@@ -7,19 +7,19 @@ module Twimock
     # POST http://api.twimock.com/oauth/authorize
     class OAuth
       class Authorize < OAuth
-        METHOD = "POST"
+        METHOD = "GET"
         PATH   = "/oauth/authorize"
 
         def call(env)
           return super unless called?(env)
           begin
             request = Rack::Request.new(env)
-            body = query_string_to_hash(request.body.read)
-            @oauth_token = body.oauth_token
+            @oauth_token = request.params["oauth_token"]
+            @cancel      = request.params["cancel"]
 
             if !validate_request_token(@oauth_token)
               raise Twimock::Errors::InvalidRequestToken.new
-            elsif body.cancel
+            elsif @cancel == "true"
               raise Twimock::Errors::OAuthCancelled.new
             end
 

@@ -46,10 +46,10 @@ module Twimock
                        "Location" => callback_url }
             [ status, header, [ body ] ]
           rescue Twimock::Errors::OAuthCancelled
-            status = 307
+            status = 303
             body   = ""
             header = { "Content-Length" => body.bytesize.to_s,
-                       "Location" => "/oauth/authorize" }
+                       "Location" => "/oauth/authorize?oauth_token=#{@oauth_token}&cancel=true" }
             [ status, header, [ body ] ]
           rescue Twimock::Errors::InvalidUsernameOrEmail, Twimock::Errors::InvalidPassword => @error
             response = unauthorized

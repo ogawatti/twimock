@@ -171,9 +171,10 @@ describe Twimock::API::Intent::Sessions do
         post path, @body, header
       end
 
-      it 'should return 307 Temporary Redirect /oauth/authorize' do
-        expect(last_response.status).to eq 307
-        expect(last_response.header['Location']).to eq Twimock::API::OAuth::Authorize::PATH
+      it 'should return 303 Temporary Redirect /oauth/authorize' do
+        expect(last_response.status).to eq 303
+        location = Twimock::API::OAuth::Authorize::PATH + "?oauth_token=#{@request_token.string}&cancel=true"
+        expect(last_response.header['Location']).to eq location
         expect(last_response.body).to be_blank
       end
     end
