@@ -21,16 +21,16 @@ module Twimock
             if !validate_request_token(@oauth_token)
               raise Twimock::Errors::InvalidRequestToken.new
             end
-
-            status = 200
-            body   = Twimock::API::OAuth::Authenticate.view(@oauth_token)
-            header = { "Content-Length" => body.bytesize.to_s }
-            [ status, header, [ body ] ]
           rescue Twimock::Errors::InvalidRequestToken => @error
             unauthorized
           rescue => @error
             internal_server_error
           end
+
+          status = 200
+          body   = Twimock::API::OAuth::Authenticate.view(@oauth_token)
+          header = { "Content-Length" => body.bytesize.to_s }
+          [ status, header, [ body ] ]
         end
 
         def self.view(oauth_token)

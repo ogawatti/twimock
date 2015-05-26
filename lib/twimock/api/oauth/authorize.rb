@@ -22,11 +22,6 @@ module Twimock
             elsif @cancel == "true"
               raise Twimock::Errors::OAuthCancelled.new
             end
-
-            status = 200
-            body = ""
-            header = { "Content-Length" => body.bytesize.to_s }
-            [ status, header, [ body ] ]
           rescue Twimock::Errors::InvalidRequestToken => @error
             unauthorized
           rescue Twimock::Errors::OAuthCancelled => @error
@@ -34,6 +29,11 @@ module Twimock
           rescue => @error
             internal_server_error
           end
+
+          status = 200
+          body = ""
+          header = { "Content-Length" => body.bytesize.to_s }
+          [ status, header, [ body ] ]
         end
 
         private
