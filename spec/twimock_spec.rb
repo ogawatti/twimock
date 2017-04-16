@@ -5,8 +5,102 @@ describe Twimock do
   let(:db_name) { '.test' }
   let(:provider) { 'twitter' }
 
+  let(:host) { 'exapmle.com' }
+  let(:port) { 80 }
+  let(:path) { '/' }
+
   it 'should have a version number' do
     expect(Twimock::VERSION).to eq version
+  end
+
+  it { expect(Twimock.class_variable_get(:@@enable)).to eq false }
+
+  describe '.on?' do
+    context 'by default' do
+      subject { Twimock.on? }
+      it { is_expected.to be false }
+    end
+
+    context 'after on' do
+      before { Twimock.on }
+      subject { Twimock.on? }
+      it { is_expected.to be true }
+      after { Twimock.off }
+    end
+
+    context 'after off' do
+      before do
+        Twimock.on
+        Twimock.off
+      end
+      subject { Twimock.on? }
+      it { is_expected.to be false }
+    end
+  end
+
+  describe '.on' do
+    after { Twimock.off }
+
+    subject { Twimock.on }
+    it { is_expected.to be true }
+
+    context 'after on' do
+      before { Twimock.on }
+      it { expect(Twimock.class_variable_get(:@@enable)).to eq true }
+    end
+
+    context 'Net::HTTP' do
+      before { Twimock.on }
+
+      describe '.ancestors' do
+        it { expect(Net::HTTP.ancestors).to be_include(Twimock::Net::HTTP) }
+      end
+
+      describe '.methods' do
+        it { expect(Net::HTTP.instance_methods).to be_include(:get) }
+        it { expect(Net::HTTP.instance_methods).to be_include(:__get) }
+      end
+
+      describe '#get' do
+        before { expect_any_instance_of(Twimock::Net::HTTP).to receive(:get).once }
+        subject { lambda { Net::HTTP.new(host, port).get(path) } }
+        it { is_expected.not_to raise_error }
+      end
+    end
+  end
+
+  describe '.off' do
+    before { Twimock.on }
+    after  { Twimock.off }
+
+    subject { Twimock.off }
+    it { is_expected.to be true }
+
+    context 'after off' do
+      before do
+        Twimock.on
+        Twimock.off
+      end
+      it { expect(Twimock.class_variable_get(:@@enable)).to eq false }
+    end
+
+    context 'Net::HTTP' do
+      describe '.ancestors' do
+        it { expect(Net::HTTP.ancestors).to be_include(Twimock::Net::HTTP) }
+      end
+
+      describe '.methods' do
+        before { Twimock.off }
+        it { expect(Net::HTTP.instance_methods).to be_include(:get) }
+        it { expect(Net::HTTP.instance_methods).not_to be_include(:__get) }
+      end
+
+      describe '#get' do
+        before { expect_any_instance_of(::Net::HTTP).to receive(:get).once }
+        subject { lambda { Net::HTTP.new(host, port).get(path) } }
+        it { is_expected.not_to raise_error }
+      end
+    end
   end
 
   describe '.auth_hash' do
